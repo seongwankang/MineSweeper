@@ -3,735 +3,706 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MINESWEEPER</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>MINE HUNTER</title>
 
   <style>
-    :root {
-      --cell-size: 30px;
-      --cell-gap: 2px;
-      --cell-font: 16px;
-    }
 
     * {
       box-sizing: border-box;
     }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
+    :root {
+      color-scheme: dark;
     }
 
     body {
-      height: 100dvh;
-      padding: 10px 12px;
-      font-family: Arial, "Malgun Gothic", sans-serif;
-      background: #101827;
+      margin: 0;
+      min-height: 100dvh;
+      background: #111c19;
       color: #f1f5f9;
+      font-family: Arial, "Malgun Gothic", sans-serif;
     }
 
-    .container {
-      width: 100%;
-      max-width: 1350px;
-      height: 100%;
+    button, input, select {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1350px, 100%);
+      min-height: 100dvh;
       margin: auto;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 9px;
+      gap: 11px;
     }
+
+    /* HEADER */
 
     header {
       text-align: center;
-      flex-shrink: 0;
     }
 
     header h1 {
-      font-size: clamp(21px, 3vh, 31px);
-      margin: 0 0 4px;
-      color: #60a5fa;
-      letter-spacing: 2px;
+      color: #a3e635;
+      font-size: clamp(24px, 4vw, 35px);
+      margin: 0 0 5px;
+      letter-spacing: 3px;
     }
 
     header p {
-      margin: 0;
-      color: #94a3b8;
       font-size: 12px;
+      color: #9cae9d;
+      margin: 0;
     }
 
-    .panel {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 10px;
-      flex-shrink: 0;
-    }
+    /* CONTROL PANEL */
 
-    .settings {
+    .control-panel {
+      background: #1e3028;
+      border: 1px solid #334c3d;
+      border-radius: 13px;
+      padding: 12px;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
     }
 
-    select, button {
-      font-family: inherit;
-      font-size: 14px;
-      border: none;
-      border-radius: 8px;
+    .control-left,
+    .control-right {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 9px;
     }
 
+    .field-label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      color: #b6c6b8;
+      font-size: 11px;
+    }
+
+    input[type="text"],
     select {
-      background: #334155;
       color: white;
-      border: 1px solid #475569;
-      padding: 10px 12px;
+      background: #263e32;
+      border: 1px solid #506957;
+      border-radius: 7px;
+      padding: 9px;
+      outline: none;
+    }
+
+    input[type="text"] {
+      width: 115px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #a3e635;
+    }
+
+    select:disabled,
+    input:disabled {
+      opacity: .65;
+      cursor: not-allowed;
+    }
+
+    .radius-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 205px;
+    }
+
+    input[type="range"] {
+      width: 110px;
+      accent-color: #a3e635;
       cursor: pointer;
     }
 
-    button {
-      cursor: pointer;
-    }
-
-    .start-button {
-      background: #3b82f6;
-      color: white;
+    #radiusLabel {
+      min-width: 36px;
+      color: #bef264;
       font-weight: bold;
-      padding: 11px 18px;
-      transition: 0.2s;
     }
 
-    .start-button:hover {
-      background: #2563eb;
+    .main-button {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 0;
+      color: #142018;
+      background: #a3e635;
+      font-weight: bold;
+      cursor: pointer;
     }
+
+    .main-button:hover {
+      background: #bef264;
+    }
+
+    .rank-button {
+      color: white;
+      background: #536d4b;
+    }
+
+    .rank-button:hover {
+      background: #647e56;
+    }
+
+    /* TOOLBAR */
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-title {
+      font-size: 13px;
+      color: #aab8ad;
+      margin-right: 3px;
+    }
+
+    .tool-button {
+      min-width: 115px;
+      padding: 11px 15px;
+      border: 2px solid #425749;
+      border-radius: 10px;
+      background: #25372d;
+      color: #e2e8f0;
+      cursor: pointer;
+      font-weight: bold;
+      transition: .15s;
+    }
+
+    .tool-button.active {
+      border-color: #a3e635;
+      background: #36533a;
+      color: #d9f99d;
+      box-shadow: 0 0 0 2px rgba(163,230,53,.12);
+    }
+
+    .tool-button:disabled {
+      opacity: .45;
+    }
+
+    /* STATS */
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 9px;
-      flex-shrink: 0;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
     }
 
     .stat {
-      background: #1e293b;
-      border: 1px solid #334155;
+      border: 1px solid #334c3d;
       border-radius: 10px;
-      padding: 9px 5px;
+      background: #1d3027;
+      padding: 11px 5px;
       text-align: center;
+      min-width: 0;
     }
 
-    .stat-label {
-      color: #94a3b8;
+    .stat span {
+      display: block;
+      color: #aabcae;
       font-size: 11px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
-    .stat-value {
-      font-size: 23px;
-      font-weight: bold;
-      color: #f8fafc;
+    .stat strong {
+      color: #f0fdf4;
+      font-size: clamp(17px, 2.5vw, 24px);
       font-variant-numeric: tabular-nums;
     }
 
-    .game-panel {
+    /* GAME FIELD */
+
+    .field-panel {
       flex: 1;
-      min-height: 0;
+      min-height: 430px;
+      background: #1b2b23;
+      border: 1px solid #3d5745;
+      border-radius: 15px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 14px;
-      padding: 10px;
     }
 
-    .game-header {
+    .field-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      align-items: center;
+      gap: 8px;
       flex-wrap: wrap;
+      padding: 3px 4px 10px;
       flex-shrink: 0;
-      margin-bottom: 7px;
     }
 
-    .game-header strong {
+    .field-header strong {
       font-size: 14px;
     }
 
     #message {
-      color: #cbd5e1;
+      font-size: 12px;
+      color: #bef264;
+      text-align: right;
+    }
+
+    .canvas-wrap {
+      flex: 1;
+      min-height: 350px;
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #81965a;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .canvas-hint {
+      position: absolute;
+      left: 12px;
+      bottom: 10px;
+      padding: 7px 10px;
+      background: rgba(20, 35, 22, .76);
+      border: 1px solid rgba(220, 252, 190, .15);
+      border-radius: 7px;
+      color: #e2f2cf;
+      font-size: 11px;
+      pointer-events: none;
+    }
+
+    /* GAME STATUS */
+
+    .game-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 9px 3px 2px;
+      color: #9daf9f;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    #saveStatus {
+      color: #bef264;
+    }
+
+    /* LEADERBOARD MODAL */
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      padding: 12px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, .8);
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 680px;
+      max-height: 90dvh;
+      overflow: auto;
+      padding: 20px;
+      background: #20352a;
+      border: 1px solid #516b52;
+      border-radius: 16px;
+    }
+
+    .modal-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .modal-heading h2 {
+      margin: 0;
+      color: #bef264;
+      font-size: 21px;
+    }
+
+    .close-button {
+      border: 0;
+      padding: 8px 13px;
+      border-radius: 7px;
+      background: #435849;
+      color: white;
+      cursor: pointer;
+    }
+
+    .rank-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .rank-stat {
+      text-align: center;
+      border-radius: 9px;
+      background: #14251c;
+      padding: 12px 4px;
+    }
+
+    .rank-stat span {
+      display: block;
+      font-size: 11px;
+      color: #a9bbaa;
+    }
+
+    .rank-stat strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 21px;
+      color: #d9f99d;
+    }
+
+    .rank-section h3 {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .rank-table {
+      width: 100%;
+      min-width: 390px;
+      border-collapse: collapse;
+      text-align: center;
       font-size: 12px;
     }
 
-    .result {
-      display: none;
-      text-align: center;
-      padding: 9px;
-      border-radius: 9px;
-      margin-bottom: 7px;
-      font-size: 15px;
-      font-weight: bold;
-      flex-shrink: 0;
+    .rank-table th {
+      background: #314c3a;
+      padding: 11px 6px;
+      color: #e2e8f0;
     }
 
-    .result.win {
-      display: block;
-      background: #14532d;
-      color: #bbf7d0;
+    .rank-table td {
+      padding: 12px 5px;
+      border-bottom: 1px solid #405745;
     }
 
-    .result.lose {
-      display: block;
-      background: #7f1d1d;
-      color: #fecaca;
-    }
-
-    /* 게임판 전체를 화면에 맞추는 영역 */
-    .board-scroll {
-      flex: 1;
-      min-height: 0;
-      width: 100%;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #board {
-      display: grid;
-      gap: var(--cell-gap);
-      width: max-content;
-      height: max-content;
-      padding: 3px;
-      background: #0f172a;
-      border-radius: 6px;
-      flex-shrink: 0;
-    }
-
-    .cell {
-      width: var(--cell-size);
-      height: var(--cell-size);
-      min-width: 0;
-      min-height: 0;
-      padding: 0;
-
-      border-radius: 3px;
-      border: 1px solid #64748b;
-      border-right: 2px solid #334155;
-      border-bottom: 2px solid #334155;
-
-      background: #475569;
-      color: white;
-
-      font-size: var(--cell-font);
-      line-height: 1;
-      font-weight: bold;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      user-select: none;
-      touch-action: manipulation;
-    }
-
-    .cell:hover:not(.revealed) {
-      background: #64748b;
-    }
-
-    .cell.revealed {
-      background: #cbd5e1;
-      border: 1px solid #94a3b8;
-      cursor: default;
-      color: #0f172a;
-    }
-
-    .cell.flagged {
-      background: #475569;
-    }
-
-    .cell.mine {
-      background: #ef4444;
-      border-color: #dc2626;
-    }
-
-    .cell.exploded {
-      background: #991b1b;
-      border-color: #fecaca;
-    }
-
-    .cell.wrong {
-      background: #7f1d1d;
-    }
-
-    .n1 { color: #2563eb; }
-    .n2 { color: #15803d; }
-    .n3 { color: #dc2626; }
-    .n4 { color: #6d28d9; }
-    .n5 { color: #991b1b; }
-    .n6 { color: #0891b2; }
-    .n7 { color: #111827; }
-    .n8 { color: #64748b; }
-
-    .instructions {
-      color: #94a3b8;
+    .rank-note {
+      color: #9fb39f;
       font-size: 11px;
       line-height: 1.6;
-      text-align: center;
-      margin-top: 7px;
-      flex-shrink: 0;
+      margin-top: 13px;
     }
 
-/* 닉네임 입력 */
-.nickname-input {
-  width: 135px;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #475569;
-  background: #334155;
-  color: white;
-  font-size: 13px;
-  outline: none;
-}
+    @media(max-width: 700px) {
 
-.nickname-input:focus {
-  border-color: #60a5fa;
-}
-
-.nickname-input::placeholder {
-  color: #94a3b8;
-}
-
-/* 랭킹 버튼 */
-.records-button {
-  background: #7c3aed;
-  color: white;
-  font-weight: bold;
-  padding: 11px 15px;
-}
-
-.records-button:hover {
-  background: #6d28d9;
-}
-
-/* 기록 모달 */
-.records-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: rgba(2, 6, 23, 0.85);
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-}
-
-.records-modal.open {
-  display: flex;
-}
-
-.records-card {
-  width: 100%;
-  max-width: 760px;
-  max-height: 90dvh;
-  overflow-y: auto;
-  background: #1e293b;
-  border: 1px solid #475569;
-  border-radius: 16px;
-  padding: 20px;
-}
-
-.records-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.records-heading h2 {
-  color: #60a5fa;
-  font-size: 21px;
-  margin: 0;
-}
-
-.close-records {
-  background: #475569;
-  padding: 8px 13px;
-  color: white;
-}
-
-.record-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.record-stat {
-  background: #0f172a;
-  border-radius: 9px;
-  padding: 12px 5px;
-  text-align: center;
-}
-
-.record-stat span {
-  color: #94a3b8;
-  font-size: 11px;
-  display: block;
-}
-
-.record-stat strong {
-  display: block;
-  margin-top: 6px;
-  font-size: 21px;
-  color: #f8fafc;
-}
-
-.record-section {
-  margin-top: 20px;
-}
-
-.record-section h3 {
-  font-size: 15px;
-  margin-bottom: 10px;
-  color: #e2e8f0;
-}
-
-.record-table-wrap {
-  overflow-x: auto;
-}
-
-.record-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-  text-align: center;
-  min-width: 340px;
-}
-
-.record-table th {
-  background: #334155;
-  color: #cbd5e1;
-  padding: 11px 5px;
-}
-
-.record-table td {
-  padding: 11px 5px;
-  border-bottom: 1px solid #334155;
-  color: #f1f5f9;
-}
-
-.record-table tr:hover td {
-  background: #29394e;
-}
-
-.record-status {
-  color: #94a3b8;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 15px;
-}
-
-@media (max-width: 600px) {
-  .nickname-input {
-    width: 115px;
-    font-size: 11px;
-  }
-
-  .records-button {
-    padding: 10px;
-    font-size: 11px;
-  }
-
-  .records-card {
-    padding: 12px;
-  }
-
-  .records-heading h2 {
-    font-size: 18px;
-  }
-
-  .record-stats {
-    gap: 5px;
-  }
-}
-
-    @media (max-width: 600px) {
-      body {
-        padding: 6px;
+      .app {
+        padding: 8px;
+        gap: 8px;
       }
 
-      .container {
-        gap: 5px;
+      .control-panel {
+        align-items: stretch;
       }
 
-      header h1 {
-        font-size: 21px;
+      .control-left {
+        width: 100%;
       }
 
-      header p {
-        font-size: 10px;
+      .control-right {
+        width: 100%;
       }
 
-      .panel {
+      .radius-box {
+        flex: 1;
+      }
+
+      .tool-button {
+        flex: 1;
+        min-width: 90px;
+      }
+
+      .field-panel {
+        min-height: 400px;
         padding: 7px;
       }
 
-      select {
-        font-size: 12px;
-        padding: 9px 7px;
-        max-width: 70%;
+      .canvas-wrap {
+        min-height: 340px;
       }
 
-      .start-button {
-        padding: 10px 12px;
-        font-size: 12px;
-      }
-
-      .stats {
-        gap: 5px;
-      }
-
-      .stat {
-        padding: 6px 3px;
-      }
-
-      .stat-label {
-        font-size: 10px;
-      }
-
-      .stat-value {
-        font-size: 19px;
-      }
-
-      .game-panel {
-        padding: 6px;
-      }
-
-      .game-header {
-        margin-bottom: 4px;
-      }
-
-      .instructions {
-        font-size: 9px;
-        margin-top: 4px;
-      }
     }
 
-    @media (max-height: 600px) {
-      body {
-        padding-top: 4px;
-        padding-bottom: 4px;
-      }
+    @media(max-width: 390px) {
 
-      .container {
+      .stats {
         gap: 4px;
       }
 
-      header h1 {
-        font-size: 19px;
-        margin-bottom: 0;
-      }
-
-      header p {
-        display: none;
-      }
-
-      .panel {
-        padding: 5px;
-      }
-
       .stat {
-        padding: 4px;
+        padding: 8px 2px;
       }
 
-      .stat-label {
-        margin-bottom: 1px;
-      }
-
-      .stat-value {
-        font-size: 17px;
-      }
-
-      .game-panel {
-        padding: 5px;
-      }
-
-      .instructions {
+      .stat span {
         font-size: 9px;
-        line-height: 1.3;
       }
+
+      .control-left {
+        gap: 6px;
+      }
+
+      input[type="text"] {
+        width: 95px;
+      }
+
     }
+
   </style>
+
 </head>
 
 <body>
 
-<div class="container">
+<div class="app">
 
   <header>
-    <h1>💣 MINESWEEPER</h1>
-    <p>숨겨진 지뢰를 찾아내고 안전한 칸을 모두 열어보세요!</p>
+    <h1>🌱 MINE HUNTER</h1>
+    <p>탐사하고, 추론하고, 모든 지뢰에 깃발을 설치하세요.</p>
   </header>
 
-  <div class="panel">
 
-<div class="settings">
+  <!-- 설정 -->
 
-  <input
-    type="text"
-    id="nickname"
-    class="nickname-input"
-    maxlength="12"
-    placeholder="닉네임"
-    value="플레이어"
-  >
+  <section class="control-panel">
 
-  <select id="difficulty">
-    <option value="easy">초급 (9 × 9 / 지뢰 10개)</option>
-    <option value="normal" selected>중급 (16 × 16 / 지뢰 40개)</option>
-    <option value="hard">고급 (30 × 16 / 지뢰 99개)</option>
-  </select>
+    <div class="control-left">
 
-  <button class="start-button" id="startBtn">
-    새 게임 시작
-  </button>
+      <label class="field-label">
+        닉네임
+        <input
+          type="text"
+          id="nickname"
+          maxlength="12"
+          value="플레이어"
+          placeholder="닉네임"
+        >
+      </label>
 
-  <button class="records-button" id="recordsBtn">
-    🏆 기록 / 랭킹
-  </button>
+      <label class="field-label">
+        난이도
+        <select id="difficulty">
+          <option value="easy">초급 · 지뢰 8개</option>
+          <option value="normal" selected>중급 · 지뢰 12개</option>
+          <option value="hard">고급 · 지뢰 16개</option>
+        </select>
+      </label>
+
+      <label class="field-label">
+        삽 조사 반경
+        <div class="radius-box">
+
+          <input
+            type="range"
+            id="radiusSlider"
+            min="6"
+            max="20"
+            step="1"
+            value="12"
+          >
+
+          <strong id="radiusLabel">12%</strong>
+
+        </div>
+      </label>
+
+    </div>
+
+    <div class="control-right">
+
+      <button class="main-button" id="newGameBtn">
+        새 탐사
+      </button>
+
+      <button class="main-button rank-button" id="rankBtn">
+        🏆 랭킹
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- 도구 선택 -->
+
+  <section class="toolbar">
+
+    <span class="toolbar-title">사용할 도구</span>
+
+    <button
+      class="tool-button active"
+      data-tool="shovel"
+      id="shovelTool"
+    >
+      ⛏️ 삽
+    </button>
+
+    <button
+      class="tool-button"
+      data-tool="flag"
+      id="flagTool"
+    >
+      🚩 깃발
+    </button>
+
+  </section>
+
+
+  <!-- 통계 -->
+
+  <section class="stats">
+
+    <div class="stat">
+      <span>🚩 남은 깃발</span>
+      <strong id="remainingFlags">12</strong>
+    </div>
+
+    <div class="stat">
+      <span>⛏️ 삽 사용 횟수</span>
+      <strong id="shovelCount">0</strong>
+    </div>
+
+    <div class="stat">
+      <span>⏱️ 경과 시간</span>
+      <strong id="timer">00:00</strong>
+    </div>
+
+    <div class="stat">
+      <span>🔎 최근 조사 결과</span>
+      <strong id="lastScan">-</strong>
+    </div>
+
+  </section>
+
+
+  <!-- 연속 지형 게임 공간 -->
+
+  <section class="field-panel">
+
+    <div class="field-header">
+      <strong>🌿 탐사 지역</strong>
+      <span id="message">삽을 선택하고 땅을 조사하세요.</span>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap">
+
+      <canvas id="gameCanvas"></canvas>
+
+      <div class="canvas-hint" id="canvasHint">
+        ⛏️ 클릭하여 원형 범위를 조사하세요.
+      </div>
+
+    </div>
+
+    <div class="game-status">
+
+      <span>
+        깃발은 최대 지뢰 개수만큼 설치할 수 있습니다.
+      </span>
+
+      <span id="saveStatus">
+        준비 완료
+      </span>
+
+    </div>
+
+  </section>
 
 </div>
 
-  </div>
 
-  <div class="stats">
+<!-- 랭킹 모달 -->
 
-    <div class="stat">
-      <div class="stat-label">💣 남은 지뢰</div>
-      <div class="stat-value" id="mineCount">040</div>
-    </div>
+<div class="modal" id="rankModal">
 
-    <div class="stat">
-      <div class="stat-label">⏱️ 경과 시간</div>
-      <div class="stat-value" id="timer">000</div>
-    </div>
+  <div class="modal-card">
 
-    <div class="stat">
-      <div class="stat-label">🚩 설치한 깃발</div>
-      <div class="stat-value" id="flagCount">000</div>
-    </div>
+    <div class="modal-heading">
 
-  </div>
+      <h2>🏆 MINE HUNTER 랭킹</h2>
 
-  <div class="game-panel">
-
-    <div class="result" id="result"></div>
-
-    <div class="game-header">
-      <strong>게임 보드</strong>
-      <span id="message">첫 칸을 클릭하세요!</span>
-    </div>
-
-    <div class="board-scroll" id="boardArea">
-      <div id="board"></div>
-    </div>
-
-    <div class="instructions">
-      🖱️ 왼쪽 클릭: 칸 열기 · 🚩 오른쪽 클릭: 깃발 설치/해제
-      <br>
-      💡 숫자 칸 클릭: 주변 깃발 수가 숫자와 같으면 나머지 닫힌 칸 열기
-    </div>
-
-  </div>
-
-<!-- 스프레드시트 기록 및 랭킹 모달 -->
-<div class="records-modal" id="recordsModal">
-
-  <div class="records-card">
-
-    <div class="records-heading">
-      <h2>🏆 게임 기록 & 랭킹</h2>
-      <button class="close-records" id="closeRecordsBtn">
+      <button class="close-button" id="closeRankBtn">
         닫기 ✕
       </button>
+
     </div>
 
-    <!-- 전체 통계 -->
-    <div class="record-stats">
+    <div class="rank-stats">
 
-      <div class="record-stat">
-        <span>전체 플레이</span>
-        <strong id="totalGames">0</strong>
-      </div>
-
-      <div class="record-stat">
-        <span>전체 승리</span>
+      <div class="rank-stat">
+        <span>완료 기록</span>
         <strong id="totalWins">0</strong>
       </div>
 
-      <div class="record-stat">
-        <span>승률</span>
-        <strong id="winRate">0%</strong>
+      <div class="rank-stat">
+        <span>최소 삽 횟수</span>
+        <strong id="bestShovels">-</strong>
+      </div>
+
+      <div class="rank-stat">
+        <span>최고 기록 시간</span>
+        <strong id="bestTime">-</strong>
       </div>
 
     </div>
 
-    <!-- 난이도별 랭킹 -->
-    <div class="record-section">
+    <div class="rank-section">
 
-      <h3>🥇 난이도별 최고 기록 TOP 10</h3>
+      <h3 id="rankTitle">🥇 중급 랭킹</h3>
 
-      <div class="record-table-wrap">
+      <div class="table-wrap">
 
-        <table class="record-table">
+        <table class="rank-table">
 
           <thead>
             <tr>
               <th>순위</th>
               <th>닉네임</th>
-              <th>기록</th>
-              <th>달성 날짜</th>
-            </tr>
-          </thead>
-
-          <tbody id="leaderboardBody">
-            <tr>
-              <td colspan="4">기록을 불러오는 중...</td>
-            </tr>
-          </tbody>
-
-        </table>
-
-      </div>
-
-    </div>
-
-    <!-- 최근 게임 기록 -->
-    <div class="record-section">
-
-      <h3>📋 최근 플레이 기록</h3>
-
-      <div class="record-table-wrap">
-
-        <table class="record-table">
-
-          <thead>
-            <tr>
-              <th>닉네임</th>
-              <th>난이도</th>
-              <th>결과</th>
+              <th>삽 횟수</th>
               <th>시간</th>
+              <th>날짜</th>
             </tr>
           </thead>
 
-          <tbody id="recentBody">
+          <tbody id="rankBody">
+
             <tr>
-              <td colspan="4">기록을 불러오는 중...</td>
+              <td colspan="5">랭킹 불러오는 중...</td>
             </tr>
+
           </tbody>
 
         </table>
@@ -740,760 +711,1126 @@
 
     </div>
 
-    <div class="record-status" id="recordStatus">
-      Google 스프레드시트와 연결된 기록입니다.
+    <div class="rank-note">
+      동일 난이도 및 동일 삽 조사 반경의 기록만 비교합니다.
+      <br>
+      삽 사용 횟수가 적은 사람이 우선이며,
+      횟수가 같으면 시간이 빠른 사람이 앞섭니다.
     </div>
 
   </div>
 
 </div>
 
-</div>
 
 <script>
+
   // =====================================
-  // 1. 게임 기본 설정
+  // 1. 기본 게임 설정
   // =====================================
 
   const LEVELS = {
+
     easy: {
-      rows: 9,
-      cols: 9,
-      mines: 10
+      label: '초급',
+      mines: 8
     },
 
     normal: {
-      rows: 16,
-      cols: 16,
-      mines: 40
+      label: '중급',
+      mines: 12
     },
 
     hard: {
-      rows: 16,
-      cols: 30,
-      mines: 99
+      label: '고급',
+      mines: 16
     }
+
   };
 
-  let rows = 16;
-  let cols = 16;
-  let mineTotal = 40;
+  const WORLD_MARGIN = 28;
 
-  let board = [];
+  let worldW = 1000;
+  let worldH = 600;
 
-  let gameOver = false;
-  let firstClick = true;
+  let mines = [];
+  let flags = [];
+  let scans = [];
 
-  let revealedCount = 0;
-  let flagTotal = 0;
+  let mineTotal = 12;
+  let shovelRadiusPct = 12;
 
-  let seconds = 0;
+  let shovelCount = 0;
+  let elapsedSeconds = 0;
+
+  let startTimestamp = null;
   let timerId = null;
-  let started = false;
 
-  const boardElement = document.getElementById('board');
-  const boardArea = document.getElementById('boardArea');
+  let currentTool = 'shovel';
 
-  const messageElement = document.getElementById('message');
-  const resultElement = document.getElementById('result');
+  let gameStarted = false;
+  let gameFinished = false;
+  let validationShown = false;
+
+  let pointerPosition = null;
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const canvasWrap =
+    document.getElementById('canvasWrap');
+
+  const message =
+    document.getElementById('message');
+
+  const LEVEL_SELECT =
+    document.getElementById('difficulty');
+
+  const RADIUS_SLIDER =
+    document.getElementById('radiusSlider');
+
 
   // =====================================
-  // 2. 게임 시작
+  // 2. 게임 공간 계산
   // =====================================
 
-  function startGame() {
+  function getShortSide() {
+    return Math.min(worldW, worldH);
+  }
+
+  // 지뢰를 정확하게 판정하는 깃발 반경
+  function getFlagRadius() {
+
+    return Math.max(
+      4,
+      Math.min(12, getShortSide() * 0.018)
+    );
+
+  }
+
+  // 삽 조사 반경
+  function getShovelRadius() {
+
+    return getShortSide() *
+      shovelRadiusPct / 100;
+
+  }
+
+  // 지뢰 위치 간 최소 거리
+  function getMinimumMineDistance() {
+
+    const flagRadius = getFlagRadius();
+
+    return Math.max(
+      flagRadius * 2 + 8,
+      getShortSide() * 0.085
+    );
+
+  }
+
+
+  // =====================================
+  // 3. 지뢰 생성
+  // =====================================
+
+  function generateMines() {
+
+    mines = [];
+
+    const margin = Math.max(
+      WORLD_MARGIN,
+      getShortSide() * 0.06
+    );
+
+    let minimumDistance =
+      getMinimumMineDistance();
+
+    const absoluteMinimum =
+      getFlagRadius() * 2 + 8;
+
+    // 간격을 지키면서 지뢰 생성
+    while (
+      mines.length < mineTotal &&
+      minimumDistance >= absoluteMinimum
+    ) {
+
+      let attempts = 0;
+
+      while (
+        mines.length < mineTotal &&
+        attempts < 10000
+      ) {
+
+        attempts++;
+
+        const candidate = {
+
+          x: margin + Math.random() *
+            (worldW - margin * 2),
+
+          y: margin + Math.random() *
+            (worldH - margin * 2)
+
+        };
+
+        let valid = true;
+
+        for (const mine of mines) {
+
+          const distance = Math.hypot(
+            candidate.x - mine.x,
+            candidate.y - mine.y
+          );
+
+          if (distance < minimumDistance) {
+
+            valid = false;
+            break;
+
+          }
+
+        }
+
+        if (valid) {
+          mines.push(candidate);
+        }
+
+      }
+
+      // 공간이 부족한 경우 안전한 범위 안에서
+      // 간격을 조금씩 줄여 재시도
+      if (mines.length < mineTotal) {
+
+        minimumDistance *= 0.9;
+
+      }
+
+    }
+
+    if (mines.length !== mineTotal) {
+
+      throw new Error(
+        '지뢰를 배치할 공간이 부족합니다. 화면을 넓혀 다시 시작하세요.'
+      );
+
+    }
+
+  }
+
+
+  // =====================================
+  // 4. 새 게임
+  // =====================================
+
+  function newGame() {
 
     clearInterval(timerId);
 
-    const level = document.getElementById('difficulty').value;
-    const config = LEVELS[level];
+    const config =
+      LEVELS[LEVEL_SELECT.value];
 
-    rows = config.rows;
-    cols = config.cols;
     mineTotal = config.mines;
 
-    gameOver = false;
-    firstClick = true;
+    shovelRadiusPct =
+      Number(RADIUS_SLIDER.value);
 
-    revealedCount = 0;
-    flagTotal = 0;
+    worldW = Math.max(
+      320,
+      canvasWrap.clientWidth
+    );
 
-    seconds = 0;
-    started = false;
+    worldH = Math.max(
+      240,
+      canvasWrap.clientHeight
+    );
 
-    board = [];
+    flags = [];
+    scans = [];
 
-    resultElement.className = 'result';
-    resultElement.textContent = '';
+    shovelCount = 0;
+    elapsedSeconds = 0;
 
-    messageElement.textContent = '첫 칸을 클릭하세요!';
+    startTimestamp = null;
+    timerId = null;
 
-    document.getElementById('mineCount').textContent =
-      String(mineTotal).padStart(3, '0');
+    gameStarted = false;
+    gameFinished = false;
+    validationShown = false;
 
-    document.getElementById('timer').textContent = '000';
-    document.getElementById('flagCount').textContent = '000';
+    pointerPosition = null;
 
-    boardElement.innerHTML = '';
-    boardElement.style.gridTemplateColumns =
-      `repeat(${cols}, var(--cell-size))`;
+    try {
 
-    // 지뢰가 아직 없는 빈 보드 생성
-    for (let r = 0; r < rows; r++) {
+      generateMines();
 
-      board[r] = [];
+    } catch (error) {
 
-      for (let c = 0; c < cols; c++) {
+      message.textContent = error.message;
 
-        board[r][c] = {
-          mine: false,
-          number: 0,
-          revealed: false,
-          flagged: false,
-          element: null
-        };
+      console.error(error);
+      return;
 
-        const cell = document.createElement('button');
-
-        cell.className = 'cell';
-        cell.type = 'button';
-
-        cell.setAttribute(
-          'aria-label',
-          `${r + 1}행 ${c + 1}열`
-        );
-
-        // 왼쪽 클릭
-        cell.addEventListener('click', () => {
-          revealCell(r, c);
-        });
-
-        // 오른쪽 클릭
-        cell.addEventListener('contextmenu', (e) => {
-
-          e.preventDefault();
-          toggleFlag(r, c);
-
-        });
-
-        board[r][c].element = cell;
-
-        boardElement.appendChild(cell);
-      }
     }
 
-    // 화면 크기에 맞게 보드 조절
-    requestAnimationFrame(fitBoard);
+    // 설정 다시 활성화
+    LEVEL_SELECT.disabled = false;
+    RADIUS_SLIDER.disabled = false;
+
+    // 도구 초기화
+    setTool('shovel');
+
+    // 표시 초기화
+    document.getElementById('remainingFlags')
+      .textContent = mineTotal;
+
+    document.getElementById('shovelCount')
+      .textContent = '0';
+
+    document.getElementById('timer')
+      .textContent = '00:00';
+
+    document.getElementById('lastScan')
+      .textContent = '-';
+
+    document.getElementById('radiusLabel')
+      .textContent = shovelRadiusPct + '%';
+
+    document.getElementById('saveStatus')
+      .textContent = '새 탐사 준비 완료';
+
+    document.getElementById('canvasHint')
+      .textContent = '⛏️ 클릭하여 원형 범위를 조사하세요.';
+
+    message.textContent =
+      '삽을 선택하고 땅을 조사하세요.';
+
+    render();
 
   }
 
+
   // =====================================
-  // 3. 화면에 전체 보드 맞추기
+  // 5. 게임 시작 및 설정 잠금
   // =====================================
 
-  function fitBoard() {
+  function beginGame() {
 
-    if (!boardArea || !boardElement || rows === 0) return;
+    if (gameStarted) return;
 
-    const availableWidth = boardArea.clientWidth - 8;
-    const availableHeight = boardArea.clientHeight - 8;
+    gameStarted = true;
 
-    const gap = Math.min(
-      3,
-      Math.max(1, Math.floor(
-        Math.min(availableWidth, availableHeight) / 400
-      ))
-    );
+    startTimestamp = Date.now();
 
-    const widthPerCell =
-      (availableWidth - (cols - 1) * gap - 6) / cols;
+    LEVEL_SELECT.disabled = true;
+    RADIUS_SLIDER.disabled = true;
 
-    const heightPerCell =
-      (availableHeight - (rows - 1) * gap - 6) / rows;
-
-    let cellSize = Math.floor(
-      Math.min(widthPerCell, heightPerCell)
-    );
-
-    // 화면에 맞는 최대 크기
-    cellSize = Math.max(4, Math.min(42, cellSize));
-
-    const fontSize = Math.max(
-      6,
-      Math.min(19, Math.floor(cellSize * 0.57))
-    );
-
-    document.documentElement.style.setProperty(
-      '--cell-size',
-      cellSize + 'px'
-    );
-
-    document.documentElement.style.setProperty(
-      '--cell-gap',
-      gap + 'px'
-    );
-
-    document.documentElement.style.setProperty(
-      '--cell-font',
-      fontSize + 'px'
-    );
-
-    boardElement.style.gridTemplateColumns =
-      `repeat(${cols}, ${cellSize}px)`;
+    timerId = setInterval(updateTimer, 250);
 
   }
 
-  // 창 크기가 변경되면 다시 계산
-  window.addEventListener('resize', fitBoard);
-
-  window.addEventListener('orientationchange', () => {
-    setTimeout(fitBoard, 100);
-  });
-
-  // =====================================
-  // 4. 첫 클릭 주변 3×3 안전 지대 생성
-  // =====================================
-
-  function placeMines(firstRow, firstCol) {
-
-    const candidates = [];
-
-    // 첫 클릭 주변 3×3 바깥의 칸만 지뢰 후보로 선택
-    for (let r = 0; r < rows; r++) {
-
-      for (let c = 0; c < cols; c++) {
-
-        const insideSafeZone =
-          Math.abs(r - firstRow) <= 1 &&
-          Math.abs(c - firstCol) <= 1;
-
-        if (!insideSafeZone) {
-          candidates.push([r, c]);
-        }
-
-      }
-    }
-
-    // 후보 위치 무작위 섞기
-    for (let i = candidates.length - 1; i > 0; i--) {
-
-      const j = Math.floor(Math.random() * (i + 1));
-
-      [candidates[i], candidates[j]] =
-        [candidates[j], candidates[i]];
-
-    }
-
-    // 섞인 후보 중 지뢰 개수만큼 배치
-    for (let i = 0; i < mineTotal; i++) {
-
-      const [r, c] = candidates[i];
-
-      board[r][c].mine = true;
-
-    }
-
-    calculateNumbers();
-
-  }
-
-  // =====================================
-  // 5. 주변 지뢰 개수 계산
-  // =====================================
-
-  function calculateNumbers() {
-
-    for (let r = 0; r < rows; r++) {
-
-      for (let c = 0; c < cols; c++) {
-
-        if (board[r][c].mine) continue;
-
-        let count = 0;
-
-        for (let dr = -1; dr <= 1; dr++) {
-
-          for (let dc = -1; dc <= 1; dc++) {
-
-            if (dr === 0 && dc === 0) continue;
-
-            const nr = r + dr;
-            const nc = c + dc;
-
-            if (
-              nr >= 0 && nr < rows &&
-              nc >= 0 && nc < cols &&
-              board[nr][nc].mine
-            ) {
-              count++;
-            }
-
-          }
-        }
-
-        board[r][c].number = count;
-
-      }
-    }
-  }
 
   // =====================================
   // 6. 타이머
   // =====================================
 
-  function startTimer() {
+  function updateTimer() {
 
-    if (started) return;
+    if (!startTimestamp || gameFinished) return;
 
-    started = true;
+    elapsedSeconds = Math.floor(
+      (Date.now() - startTimestamp) / 1000
+    );
 
-    timerId = setInterval(() => {
-
-      seconds++;
-
-      document.getElementById('timer').textContent =
-        String(seconds).padStart(3, '0');
-
-    }, 1000);
+    document.getElementById('timer')
+      .textContent = formatTime(elapsedSeconds);
 
   }
 
+
+  function formatTime(total) {
+
+    total = Math.max(0, Number(total) || 0);
+
+    const minutes =
+      Math.floor(total / 60);
+
+    const seconds =
+      total % 60;
+
+    return String(minutes).padStart(2, '0') +
+      ':' +
+      String(seconds).padStart(2, '0');
+
+  }
+
+
   // =====================================
-  // 7. 칸 클릭
+  // 7. 캔버스 배경 그리기
+  // 연속적인 자연 지형
   // =====================================
 
-  function revealCell(r, c) {
+  function seededRandom(seed) {
 
-    if (gameOver) return;
+    return function() {
 
-    const cell = board[r][c];
+      let t = seed += 0x6D2B79F5;
 
-    // 이미 열린 숫자 칸이면 연속 열기 실행
-    if (cell.revealed) {
+      t = Math.imul(t ^ t >>> 15, t | 1);
 
-      chordOpen(r, c);
-      return;
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
 
-    }
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
 
-    // 깃발이 있는 칸은 열지 않음
-    if (cell.flagged) return;
+    };
 
-    // 첫 클릭 시 지뢰 배치
-    if (firstClick) {
+  }
 
-      placeMines(r, c);
-      firstClick = false;
 
-    }
+  function drawGround() {
 
-    startTimer();
+    const random = seededRandom(20261103);
 
-    // 지뢰를 클릭한 경우
-    if (cell.mine) {
-
-      cell.revealed = true;
-
-      cell.element.classList.add(
-        'revealed',
-        'mine',
-        'exploded'
+    const gradient =
+      ctx.createLinearGradient(
+        0, 0, worldW, worldH
       );
 
-      cell.element.textContent = '💣';
+    gradient.addColorStop(0, '#839b59');
+    gradient.addColorStop(0.5, '#718c4e');
+    gradient.addColorStop(1, '#647d46');
 
-      endGame(false, [r, c]);
+    ctx.fillStyle = gradient;
 
-      return;
+    ctx.fillRect(0, 0, worldW, worldH);
+
+    // 자연스러운 땅의 얼룩
+    for (let i = 0; i < 65; i++) {
+
+      const x = random() * worldW;
+      const y = random() * worldH;
+
+      const rx = 18 + random() * 75;
+      const ry = 12 + random() * 45;
+
+      ctx.beginPath();
+
+      ctx.ellipse(
+        x, y, rx, ry,
+        random() * Math.PI,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle = random() > 0.5
+        ? 'rgba(185, 198, 119, 0.09)'
+        : 'rgba(40, 71, 35, 0.10)';
+
+      ctx.fill();
 
     }
 
-    // 안전한 칸 열기
-    showCell(r, c);
+    // 흙과 풀의 작은 질감
+    for (let i = 0; i < 1100; i++) {
 
-    checkWin();
+      const x = random() * worldW;
+      const y = random() * worldH;
 
-  }
+      const radius = 0.5 + random() * 2;
 
-  // =====================================
-  // 8. 빈칸 자동 확장
-  // BFS(너비 우선 탐색) 방식
-  // =====================================
+      ctx.beginPath();
 
-  function showCell(startR, startC) {
+      ctx.arc(
+        x,
+        y,
+        radius,
+        0,
+        Math.PI * 2
+      );
 
-    // 범위를 벗어난 칸 확인
-    if (
-      startR < 0 || startR >= rows ||
-      startC < 0 || startC >= cols
-    ) return;
+      ctx.fillStyle = random() > 0.5
+        ? 'rgba(218, 210, 152, 0.20)'
+        : 'rgba(40, 67, 34, 0.20)';
 
-    const startCell = board[startR][startC];
+      ctx.fill();
 
-    if (
-      startCell.revealed ||
-      startCell.flagged ||
-      startCell.mine
-    ) return;
-
-    // 열어야 하는 칸을 저장하는 큐
-    const queue = [[startR, startC]];
-
-    // 이미 큐에 넣은 칸을 중복 처리하지 않도록 관리
-    const visited = new Set();
-
-    let head = 0;
-
-    visited.add(`${startR},${startC}`);
-
-    while (head < queue.length) {
-
-      const [r, c] = queue[head];
-
-      head++;
-
-      const cell = board[r][c];
-
-      if (
-        cell.revealed ||
-        cell.flagged ||
-        cell.mine
-      ) continue;
-
-      // 현재 칸 열기
-      cell.revealed = true;
-      revealedCount++;
-
-      cell.element.classList.add('revealed');
-
-      // 숫자가 있는 칸
-      if (cell.number > 0) {
-
-        cell.element.textContent = cell.number;
-
-        cell.element.classList.add(
-          'n' + cell.number
-        );
-
-        // 숫자 칸은 더 이상 확장하지 않음
-        continue;
-
-      }
-
-      // 빈칸이면 주변 8칸을 큐에 추가
-      for (let dr = -1; dr <= 1; dr++) {
-
-        for (let dc = -1; dc <= 1; dc++) {
-
-          if (dr === 0 && dc === 0) continue;
-
-          const nr = r + dr;
-          const nc = c + dc;
-
-          if (
-            nr < 0 || nr >= rows ||
-            nc < 0 || nc >= cols
-          ) continue;
-
-          const neighbor = board[nr][nc];
-
-          const key = `${nr},${nc}`;
-
-          if (
-            !visited.has(key) &&
-            !neighbor.revealed &&
-            !neighbor.flagged &&
-            !neighbor.mine
-          ) {
-
-            visited.add(key);
-            queue.push([nr, nc]);
-
-          }
-
-        }
-      }
     }
+
+    // 짧은 풀잎
+    for (let i = 0; i < 260; i++) {
+
+      const x = random() * worldW;
+      const y = random() * worldH;
+
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+
+      ctx.quadraticCurveTo(
+        x + random() * 8 - 4,
+        y - 3 - random() * 7,
+        x + random() * 10 - 5,
+        y - 7 - random() * 8
+      );
+
+      ctx.strokeStyle = 'rgba(42, 78, 35, 0.28)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+    }
+
   }
 
+
   // =====================================
-  // 9. 깃발 설치 및 해제
+  // 8. 조사 결과 그리기
   // =====================================
 
-  function toggleFlag(r, c) {
+  function drawScans() {
 
-    if (gameOver) return;
+    scans.forEach(scan => {
 
-    const cell = board[r][c];
+      const color = scan.count === 0
+        ? 'rgba(125, 211, 100, 0.75)'
+        : 'rgba(255, 222, 117, 0.82)';
 
-    if (cell.revealed) return;
+      // 조사 원 내부
+      ctx.beginPath();
 
-    cell.flagged = !cell.flagged;
+      ctx.arc(
+        scan.x,
+        scan.y,
+        scan.radius,
+        0,
+        Math.PI * 2
+      );
 
-    if (cell.flagged) {
+      ctx.fillStyle = scan.count === 0
+        ? 'rgba(134, 239, 120, 0.13)'
+        : 'rgba(250, 204, 85, 0.15)';
 
-      flagTotal++;
+      ctx.fill();
 
-      cell.element.textContent = '🚩';
-      cell.element.classList.add('flagged');
+      // 조사 경계
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+
+      ctx.arc(
+        scan.x,
+        scan.y,
+        scan.radius,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.stroke();
+
+      // 가운데 표시
+      const labelRadius =
+        Math.max(14, getShortSide() * 0.025);
+
+      ctx.beginPath();
+
+      ctx.arc(
+        scan.x,
+        scan.y,
+        labelRadius,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle = '#233829';
+      ctx.fill();
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+
+      ctx.font =
+        `bold ${Math.max(13, labelRadius * 0.9)}px Arial`;
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      ctx.fillText(
+        String(scan.count),
+        scan.x,
+        scan.y
+      );
+
+    });
+
+  }
+
+
+  // =====================================
+  // 9. 깃발 그리기
+  // =====================================
+
+  function drawFlag(flag) {
+
+    const size = getShortSide() * 0.045;
+
+    // 바닥 그림자
+    ctx.beginPath();
+
+    ctx.ellipse(
+      flag.x,
+      flag.y,
+      size * 0.45,
+      size * 0.16,
+      0,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fillStyle = 'rgba(20, 40, 20, 0.35)';
+    ctx.fill();
+
+    // 깃대
+    ctx.beginPath();
+
+    ctx.moveTo(flag.x, flag.y);
+    ctx.lineTo(flag.x, flag.y - size);
+
+    ctx.strokeStyle = '#f8fafc';
+    ctx.lineWidth = Math.max(2, size * 0.09);
+    ctx.stroke();
+
+    // 깃발 천
+    ctx.beginPath();
+
+    ctx.moveTo(flag.x, flag.y - size);
+    ctx.lineTo(flag.x + size * 0.75, flag.y - size * 0.78);
+    ctx.lineTo(flag.x, flag.y - size * 0.52);
+    ctx.closePath();
+
+    if (flag.correct === true) {
+      ctx.fillStyle = '#22c55e';
+    } else if (flag.correct === false) {
+      ctx.fillStyle = '#f97316';
+    } else {
+      ctx.fillStyle = '#ef4444';
+    }
+
+    ctx.fill();
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // 검사 결과 원
+    if (flag.correct === true || flag.correct === false) {
+
+      ctx.beginPath();
+
+      ctx.arc(
+        flag.x,
+        flag.y,
+        getFlagRadius(),
+        0,
+        Math.PI * 2
+      );
+
+      ctx.strokeStyle = flag.correct
+        ? 'rgba(34, 197, 94, 0.9)'
+        : 'rgba(249, 115, 22, 0.9)';
+
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+    }
+
+  }
+
+
+  // =====================================
+  // 10. 화면 렌더링
+  // =====================================
+
+  function getTransform(width, height) {
+
+    const scale = Math.min(
+      width / worldW,
+      height / worldH
+    );
+
+    return {
+
+      scale: scale,
+
+      offsetX: (width - worldW * scale) / 2,
+
+      offsetY: (height - worldH * scale) / 2
+
+    };
+
+  }
+
+
+  function render() {
+
+    const rect = canvas.getBoundingClientRect();
+
+    const width = rect.width;
+    const height = rect.height;
+
+    if (!width || !height) return;
+
+    const dpr = Math.min(
+      window.devicePixelRatio || 1,
+      2
+    );
+
+    const targetWidth = Math.round(width * dpr);
+    const targetHeight = Math.round(height * dpr);
+
+    if (
+      canvas.width !== targetWidth ||
+      canvas.height !== targetHeight
+    ) {
+
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+    }
+
+    ctx.setTransform(
+      dpr, 0,
+      0, dpr,
+      0, 0
+    );
+
+    // 화면 전체 바탕
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.fillStyle = '#71864f';
+    ctx.fillRect(0, 0, width, height);
+
+    const transform = getTransform(width, height);
+
+    ctx.save();
+
+    ctx.translate(
+      transform.offsetX,
+      transform.offsetY
+    );
+
+    ctx.scale(
+      transform.scale,
+      transform.scale
+    );
+
+    // 자연 지형
+    drawGround();
+
+    // 과거 삽 조사 결과
+    drawScans();
+
+    // 설치된 깃발
+    flags.forEach(drawFlag);
+
+    // 현재 도구의 미리보기
+    drawPointerPreview();
+
+    ctx.restore();
+
+  }
+
+
+  // =====================================
+  // 11. 도구 범위 미리보기
+  // =====================================
+
+  function drawPointerPreview() {
+
+    if (!pointerPosition || gameFinished) return;
+
+    let radius;
+
+    if (currentTool === 'shovel') {
+
+      radius = getShovelRadius();
 
     } else {
 
-      flagTotal--;
-
-      cell.element.textContent = '';
-      cell.element.classList.remove('flagged');
+      radius = getFlagRadius();
 
     }
 
-    updateStats();
+    ctx.beginPath();
+
+    ctx.arc(
+      pointerPosition.x,
+      pointerPosition.y,
+      radius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.setLineDash([7, 5]);
+
+    ctx.strokeStyle =
+      currentTool === 'shovel'
+        ? 'rgba(255,255,255,0.85)'
+        : 'rgba(255,100,100,0.95)';
+
+    ctx.lineWidth = 2;
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
 
   }
 
+
   // =====================================
-  // 10. 숫자 칸 연속 열기
-  // Chording 기능
+  // 12. 화면 좌표를 게임 좌표로 변환
   // =====================================
 
-  function chordOpen(r, c) {
+  function getWorldPoint(event) {
 
-    if (gameOver) return;
+    const rect = canvas.getBoundingClientRect();
 
-    const cell = board[r][c];
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
 
-    // 숫자가 없는 칸에는 실행하지 않음
-    if (!cell.revealed || cell.number === 0) return;
+    const transform = getTransform(
+      rect.width,
+      rect.height
+    );
 
-    let adjacentFlags = 0;
+    return {
 
-    const targets = [];
+      x: (x - transform.offsetX) /
+        transform.scale,
 
-    // 주변 3×3 확인
-    for (let dr = -1; dr <= 1; dr++) {
+      y: (y - transform.offsetY) /
+        transform.scale,
 
-      for (let dc = -1; dc <= 1; dc++) {
+      inside:
+        x >= transform.offsetX &&
+        y >= transform.offsetY &&
+        x <= transform.offsetX + worldW * transform.scale &&
+        y <= transform.offsetY + worldH * transform.scale
 
-        if (dr === 0 && dc === 0) continue;
+    };
 
-        const nr = r + dr;
-        const nc = c + dc;
+  }
 
-        if (
-          nr < 0 || nr >= rows ||
-          nc < 0 || nc >= cols
-        ) continue;
 
-        const neighbor = board[nr][nc];
+  // =====================================
+  // 13. 삽 사용
+  // =====================================
 
-        if (neighbor.flagged) {
+  function useShovel(x, y) {
 
-          adjacentFlags++;
+    if (gameFinished) return;
 
-        } else if (!neighbor.revealed) {
+    beginGame();
 
-          targets.push([nr, nc]);
+    shovelCount++;
 
-        }
+    // 원 안에 들어온 지뢰 개수 계산
+    const radius = getShovelRadius();
 
+    let count = 0;
+
+    mines.forEach(mine => {
+
+      const distance = Math.hypot(
+        mine.x - x,
+        mine.y - y
+      );
+
+      if (distance <= radius) {
+        count++;
       }
+
+    });
+
+    scans.push({
+
+      x: x,
+      y: y,
+      radius: radius,
+      count: count
+
+    });
+
+    document.getElementById('shovelCount')
+      .textContent = shovelCount;
+
+    document.getElementById('lastScan')
+      .textContent = count + '개';
+
+    if (count === 0) {
+
+      message.textContent =
+        '🟢 이 원형 구역에는 지뢰가 없습니다.';
+
+    } else {
+
+      message.textContent =
+        '🔎 조사 완료! 범위 안의 지뢰는 ' +
+        count + '개입니다.';
+
     }
 
-    // 깃발 개수와 숫자가 일치하지 않으면 중단
-    if (adjacentFlags !== cell.number) return;
+    render();
 
-    if (targets.length === 0) return;
+  }
 
-    startTimer();
 
-    let exploded = null;
+  // =====================================
+  // 14. 깃발 설치 / 회수
+  // =====================================
 
-    // 깃발이 없는 닫힌 칸들을 모두 클릭한 것으로 처리
-    for (const [nr, nc] of targets) {
+  function useFlag(x, y) {
 
-      const target = board[nr][nc];
+    if (gameFinished) return;
 
-      if (target.mine) {
+    // 먼저 기존 깃발을 클릭했는지 확인
+    // 기존 깃발은 다시 눌러 회수할 수 있음
 
-        // 잘못된 깃발 때문에 지뢰가 열리는 상황
-        if (exploded === null) {
-          exploded = [nr, nc];
+    let selectedIndex = -1;
+    let nearestDistance = Infinity;
+
+    const removeRadius = Math.max(
+      14,
+      getFlagRadius() * 1.6
+    );
+
+    flags.forEach((flag, index) => {
+
+      const distance = Math.hypot(
+        flag.x - x,
+        flag.y - y
+      );
+
+      if (
+        distance <= removeRadius &&
+        distance < nearestDistance
+      ) {
+
+        nearestDistance = distance;
+        selectedIndex = index;
+
+      }
+
+    });
+
+    // 깃발 회수
+    if (selectedIndex !== -1) {
+
+      beginGame();
+
+      flags.splice(selectedIndex, 1);
+
+      validationShown = false;
+
+      flags.forEach(flag => {
+        flag.correct = null;
+      });
+
+      updateFlagUI();
+
+      message.textContent =
+        '깃발을 회수했습니다. 다시 설치할 수 있습니다.';
+
+      render();
+
+      return;
+
+    }
+
+    // 깃발 제한 확인
+    if (flags.length >= mineTotal) {
+
+      message.textContent =
+        '깃발이 부족합니다. 기존 깃발을 회수하세요.';
+
+      return;
+
+    }
+
+    beginGame();
+
+    // 새 깃발 추가
+    flags.push({
+
+      x: x,
+      y: y,
+      correct: null
+
+    });
+
+    validationShown = false;
+
+    updateFlagUI();
+
+    message.textContent =
+      '깃발을 설치했습니다.';
+
+    render();
+
+    // 모든 깃발을 설치했다면 정답 검사
+    if (flags.length === mineTotal) {
+
+      validateFlags();
+
+    }
+
+  }
+
+
+  // =====================================
+  // 15. 깃발 개수 표시
+  // =====================================
+
+  function updateFlagUI() {
+
+    const remaining =
+      mineTotal - flags.length;
+
+    document.getElementById('remainingFlags')
+      .textContent = remaining;
+
+  }
+
+
+  // =====================================
+  // 16. 깃발 위치 정답 검사
+  // =====================================
+
+  function validateFlags() {
+
+    const usedMines = new Set();
+
+    let correctCount = 0;
+
+    const acceptanceRadius = getFlagRadius();
+
+    // 각 깃발을 서로 다른 지뢰에만 대응
+    flags.forEach(flag => {
+
+      let bestIndex = -1;
+      let bestDistance = Infinity;
+
+      mines.forEach((mine, index) => {
+
+        if (usedMines.has(index)) return;
+
+        const distance = Math.hypot(
+          mine.x - flag.x,
+          mine.y - flag.y
+        );
+
+        if (
+          distance <= acceptanceRadius &&
+          distance < bestDistance
+        ) {
+
+          bestDistance = distance;
+          bestIndex = index;
+
         }
+
+      });
+
+      if (bestIndex !== -1) {
+
+        flag.correct = true;
+
+        usedMines.add(bestIndex);
+
+        correctCount++;
 
       } else {
 
-        // 안전한 칸 열기
-        showCell(nr, nc);
+        flag.correct = false;
 
       }
 
-    }
+    });
 
-    // 잘못된 깃발로 인해 지뢰를 열었으면 패배
-    if (exploded !== null) {
+    validationShown = true;
 
-      endGame(false, exploded);
+    if (
+      correctCount === mineTotal &&
+      flags.length === mineTotal
+    ) {
 
-      return;
-
-    }
-
-    checkWin();
-
-  }
-
-  // =====================================
-  // 11. 점수판 업데이트
-  // =====================================
-
-  function updateStats() {
-
-    document.getElementById('mineCount').textContent =
-      String(mineTotal - flagTotal).padStart(3, '0');
-
-    document.getElementById('flagCount').textContent =
-      String(flagTotal).padStart(3, '0');
-
-  }
-
-  // =====================================
-  // 12. 승리 확인
-  // =====================================
-
-  function checkWin() {
-
-    const safeCellCount = rows * cols - mineTotal;
-
-    if (revealedCount === safeCellCount) {
-
-      endGame(true);
-
-    }
-
-  }
-
-  // =====================================
-  // 13. 게임 종료
-  // =====================================
-
-function endGame(won, explodedCell = null) {
-
-  if (gameOver) return;
-
-  // 자동으로 지뢰에 깃발을 표시하기 전 실제 설치 개수 보관
-  const flagsUsed = flagTotal;
-
-  gameOver = true;
-
-    clearInterval(timerId);
-
-    if (won) {
-
-      resultElement.className = 'result win';
-
-      resultElement.textContent =
-        '🎉 축하합니다! 모든 안전한 칸을 열었습니다!';
-
-      messageElement.textContent = '게임 승리!';
+      finishGame();
 
     } else {
 
-      resultElement.className = 'result lose';
+      message.textContent =
+        `정확한 깃발은 ${correctCount}개입니다. ` +
+        '주황색 깃발을 회수해서 위치를 수정하세요.';
 
-      resultElement.textContent =
-        '💥 지뢰를 밟았습니다! 다시 도전해 보세요.';
-
-      messageElement.textContent = '게임 오버!';
-
-    }
-// 게임 종료 결과를 스프레드시트에 저장
-saveCompletedGame(won, flagsUsed);
-    // 게임 종료 시 지뢰 전체 공개
-    for (let r = 0; r < rows; r++) {
-
-      for (let c = 0; c < cols; c++) {
-
-        const cell = board[r][c];
-
-        // 실제 지뢰 공개
-        if (cell.mine && !cell.flagged) {
-
-          cell.element.textContent = '💣';
-
-          cell.element.classList.add(
-            'revealed',
-            'mine'
-          );
-
-        }
-
-        // 잘못된 깃발 표시
-        if (cell.flagged && !cell.mine) {
-
-          cell.element.textContent = '❌';
-
-          cell.element.classList.add('wrong');
-
-        }
-
-      }
-    }
-
-    // 폭발한 지뢰 표시
-    if (explodedCell !== null) {
-
-      const [r, c] = explodedCell;
-
-      board[r][c].element.classList.add(
-        'revealed',
-        'mine',
-        'exploded'
-      );
-
-      board[r][c].element.textContent = '💣';
-
-    }
-
-    // 승리하면 모든 지뢰에 깃발 표시
-    if (won) {
-
-      for (let r = 0; r < rows; r++) {
-
-        for (let c = 0; c < cols; c++) {
-
-          const cell = board[r][c];
-
-          if (cell.mine) {
-
-            cell.flagged = true;
-
-            cell.element.textContent = '🚩';
-
-            cell.element.classList.add('flagged');
-
-          }
-        }
-      }
-
-      flagTotal = mineTotal;
-
-      updateStats();
+      render();
 
     }
 
   }
 
+
   // =====================================
-  // 14. 스프레드시트 기록 저장
+  // 17. 게임 승리
   // =====================================
 
-  function saveCompletedGame(won, flagsUsed) {
+ 
+function finishGame() {
 
-    const nicknameInput =
-      document.getElementById('nickname');
+  if (gameFinished) return;
 
-    let nickname = String(nicknameInput.value)
-      .replace(/[^\w가-힣 -]/g, '')
-      .trim();
+  // 승리 순간의 정확한 시간 계산
+  if (startTimestamp) {
+
+    elapsedSeconds = Math.floor(
+      (Date.now() - startTimestamp) / 1000
+    );
+
+    document.getElementById('timer').textContent =
+      formatTime(elapsedSeconds);
+
+  }
+
+  gameFinished = true;
+
+  clearInterval(timerId);
+
+  flags.forEach(flag => {
+    flag.correct = true;
+  });
+
+  message.textContent =
+    '🎉 모든 지뢰를 찾았습니다! 탐사 성공!';
+
+  document.getElementById('canvasHint')
+    .textContent =
+      '🏆 탐사 성공! 새 탐사를 시작할 수 있습니다.';
+
+  render();
+
+  saveRecord();
+
+}
+
+
+  // =====================================
+  // 18. 스프레드시트 기록 저장
+  // =====================================
+
+  function saveRecord() {
+
+    let nickname =
+      document.getElementById('nickname').value
+        .replace(/[^\w가-힣 -]/g, '')
+        .trim();
 
     nickname = Array.from(nickname)
       .slice(0, 12)
@@ -1503,34 +1840,43 @@ saveCompletedGame(won, flagsUsed);
       nickname = '플레이어';
     }
 
-    nicknameInput.value = nickname;
+    document.getElementById('nickname').value =
+      nickname;
 
-    // 다음 방문에도 닉네임 유지
     try {
-      localStorage.setItem('minesweeperNickname', nickname);
-    } catch (e) {
-      // 로컬 저장을 사용할 수 없는 경우 무시
+
+      localStorage.setItem(
+        'mineHunterNickname',
+        nickname
+      );
+
+    } catch (error) {
+      // 로컬 저장이 차단된 경우 무시
     }
 
     const payload = {
 
       nickname: nickname,
 
-      difficulty:
-        document.getElementById('difficulty').value,
+      difficulty: LEVEL_SELECT.value,
 
-      won: won,
+      radiusPct: shovelRadiusPct,
 
-      seconds: seconds,
+      shovels: shovelCount,
 
-      flags: flagsUsed
+      seconds: elapsedSeconds,
+
+      flags: flags.length,
+
+      won: true
 
     };
 
     const status =
-      document.getElementById('recordStatus');
+      document.getElementById('saveStatus');
 
-    status.textContent = '게임 기록을 저장하는 중입니다...';
+    status.textContent =
+      '기록을 스프레드시트에 저장하는 중...';
 
     if (
       typeof google === 'undefined' ||
@@ -1539,7 +1885,7 @@ saveCompletedGame(won, flagsUsed);
     ) {
 
       status.textContent =
-        '웹앱 배포 주소에서 실행해야 기록을 저장할 수 있습니다.';
+        '웹앱 배포 주소에서 실행해야 기록이 저장됩니다.';
 
       return;
 
@@ -1550,13 +1896,13 @@ saveCompletedGame(won, flagsUsed);
       .withSuccessHandler(function(response) {
 
         status.textContent =
-          '✅ 게임 기록이 스프레드시트에 저장되었습니다!';
+          '✅ 스프레드시트에 기록 저장 완료!';
 
         const modal =
-          document.getElementById('recordsModal');
+          document.getElementById('rankModal');
 
         if (modal.classList.contains('open')) {
-          loadGameDashboard();
+          loadLeaderboard();
         }
 
       })
@@ -1564,37 +1910,199 @@ saveCompletedGame(won, flagsUsed);
       .withFailureHandler(function(error) {
 
         status.textContent =
-          '❌ 기록 저장 실패: ' + error.message;
+          '❌ 기록 저장 오류: ' + error.message;
 
         console.error(error);
 
       })
 
-      .saveGameRecord(payload);
+      .saveMineHunterRecord(payload);
 
   }
 
 
   // =====================================
-  // 15. 게임 기록 조회
+  // 19. 도구 선택
   // =====================================
 
-  function loadGameDashboard() {
+  function setTool(tool) {
 
-    const difficulty =
-      document.getElementById('difficulty').value;
+    currentTool = tool;
 
-    const leaderboard =
-      document.getElementById('leaderboardBody');
+    document.getElementById('shovelTool')
+      .classList.toggle(
+        'active',
+        tool === 'shovel'
+      );
 
-    const recent =
-      document.getElementById('recentBody');
+    document.getElementById('flagTool')
+      .classList.toggle(
+        'active',
+        tool === 'flag'
+      );
 
-    leaderboard.innerHTML =
-      '<tr><td colspan="4">불러오는 중...</td></tr>';
+    if (tool === 'shovel') {
 
-    recent.innerHTML =
-      '<tr><td colspan="4">불러오는 중...</td></tr>';
+      document.getElementById('canvasHint')
+        .textContent =
+          '⛏️ 클릭하여 원형 범위를 조사하세요.';
+
+    } else {
+
+      document.getElementById('canvasHint')
+        .textContent =
+          '🚩 지뢰 위치에 깃발을 설치하세요. 기존 깃발을 클릭하면 회수됩니다.';
+
+    }
+
+    render();
+
+  }
+
+
+  document.getElementById('shovelTool')
+    .addEventListener('click', function() {
+
+      setTool('shovel');
+
+    });
+
+
+  document.getElementById('flagTool')
+    .addEventListener('click', function() {
+
+      setTool('flag');
+
+    });
+
+
+  // =====================================
+  // 20. 캔버스 입력 처리
+  // =====================================
+
+  canvas.addEventListener('pointermove', function(event) {
+
+    const point = getWorldPoint(event);
+
+    if (
+      point.inside &&
+      !gameFinished
+    ) {
+
+      pointerPosition = point;
+
+    } else {
+
+      pointerPosition = null;
+
+    }
+
+    render();
+
+  });
+
+
+  canvas.addEventListener('pointerleave', function() {
+
+    pointerPosition = null;
+
+    render();
+
+  });
+
+
+  canvas.addEventListener('pointerdown', function(event) {
+
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (gameFinished) return;
+
+    const point = getWorldPoint(event);
+
+    if (!point.inside) return;
+
+    pointerPosition = point;
+
+    if (currentTool === 'shovel') {
+
+      useShovel(point.x, point.y);
+
+    } else {
+
+      useFlag(point.x, point.y);
+
+    }
+
+  });
+
+
+  canvas.addEventListener('contextmenu', function(event) {
+
+    event.preventDefault();
+
+  });
+
+
+  // =====================================
+  // 21. 난이도 및 반경 변경
+  // =====================================
+
+  LEVEL_SELECT.addEventListener('change', function() {
+
+    newGame();
+
+  });
+
+
+  RADIUS_SLIDER.addEventListener('input', function() {
+
+    shovelRadiusPct =
+      Number(this.value);
+
+    document.getElementById('radiusLabel')
+      .textContent = shovelRadiusPct + '%';
+
+    render();
+
+  });
+
+
+  // =====================================
+  // 22. 새 게임 버튼
+  // =====================================
+
+  document.getElementById('newGameBtn')
+    .addEventListener('click', newGame);
+
+
+  // =====================================
+  // 23. 랭킹 조회
+  // =====================================
+
+  function loadLeaderboard() {
+
+    const difficulty = LEVEL_SELECT.value;
+
+    const radiusPct = shovelRadiusPct;
+
+    const config = LEVELS[difficulty];
+
+    document.getElementById('rankTitle')
+      .textContent =
+        `🥇 ${config.label} · 반경 ${radiusPct}% 랭킹`;
+
+    const tbody =
+      document.getElementById('rankBody');
+
+    tbody.innerHTML =
+      '<tr><td colspan="5">불러오는 중...</td></tr>';
+
+    document.getElementById('totalWins')
+      .textContent = '...';
 
     if (
       typeof google === 'undefined' ||
@@ -1602,8 +2110,8 @@ saveCompletedGame(won, flagsUsed);
       !google.script.run
     ) {
 
-      document.getElementById('recordStatus').textContent =
-        '배포된 Google Apps Script 웹앱에서 실행해 주세요.';
+      tbody.innerHTML =
+        '<tr><td colspan="5">배포된 웹앱에서 확인해 주세요.</td></tr>';
 
       return;
 
@@ -1613,225 +2121,162 @@ saveCompletedGame(won, flagsUsed);
 
       .withSuccessHandler(function(data) {
 
-        renderGameDashboard(data);
+        renderLeaderboard(data);
 
       })
 
       .withFailureHandler(function(error) {
 
-        document.getElementById('recordStatus').textContent =
-          '기록 조회 실패: ' + error.message;
+        tbody.innerHTML =
+          '<tr><td colspan="5">랭킹 조회 실패</td></tr>';
 
-        leaderboard.innerHTML =
-          '<tr><td colspan="4">기록을 불러오지 못했습니다.</td></tr>';
-
-        recent.innerHTML =
-          '<tr><td colspan="4">기록을 불러오지 못했습니다.</td></tr>';
+        console.error(error);
 
       })
 
-      .getGameDashboard(difficulty);
+      .getMineHunterLeaderboard(
+        difficulty,
+        radiusPct
+      );
 
   }
 
 
   // =====================================
-  // 16. 시간 표시
+  // 24. 랭킹 시간 표시
   // =====================================
 
-  function formatRecordTime(value) {
+  function formatRankTime(value) {
 
-    const total = Math.max(0, Number(value) || 0);
-
-    const minutes = Math.floor(total / 60);
-    const secondsPart = total % 60;
-
-    return minutes + ':' +
-      String(secondsPart).padStart(2, '0');
+    return formatTime(value);
 
   }
 
 
   // =====================================
-  // 17. 랭킹 데이터 화면 출력
+  // 25. 랭킹 화면 표시
   // =====================================
 
-  function addRecordRow(tbody, values) {
+  function renderLeaderboard(data) {
 
-    const tr = document.createElement('tr');
+    const stats = data.stats;
 
-    values.forEach(value => {
+    document.getElementById('totalWins')
+      .textContent = stats.totalWins;
 
-      const td = document.createElement('td');
+    document.getElementById('bestShovels')
+      .textContent =
+        stats.bestShovels === null
+          ? '-'
+          : stats.bestShovels;
 
-      // HTML 삽입 대신 텍스트로 출력
-      td.textContent = String(value);
+    document.getElementById('bestTime')
+      .textContent =
+        stats.bestTime === null
+          ? '-'
+          : formatRankTime(stats.bestTime);
 
-      tr.appendChild(td);
+    const tbody =
+      document.getElementById('rankBody');
 
-    });
-
-    tbody.appendChild(tr);
-
-  }
-
-
-  function renderGameDashboard(data) {
-
-    const leaderboard =
-      document.getElementById('leaderboardBody');
-
-    const recent =
-      document.getElementById('recentBody');
-
-    // 전체 통계
-    document.getElementById('totalGames').textContent =
-      data.stats.totalGames;
-
-    document.getElementById('totalWins').textContent =
-      data.stats.totalWins;
-
-    document.getElementById('winRate').textContent =
-      data.stats.winRate + '%';
-
-    // =================================
-    // 최고 기록
-    // =================================
-
-    leaderboard.innerHTML = '';
+    tbody.innerHTML = '';
 
     if (!data.leaderboard.length) {
 
       const tr = document.createElement('tr');
+
       const td = document.createElement('td');
 
-      td.colSpan = 4;
-      td.textContent = '아직 승리 기록이 없습니다.';
+      td.colSpan = 5;
+      td.textContent =
+        '아직 이 설정의 승리 기록이 없습니다.';
 
       tr.appendChild(td);
-      leaderboard.appendChild(tr);
+      tbody.appendChild(tr);
 
-    } else {
-
-      data.leaderboard.forEach(record => {
-
-        addRecordRow(leaderboard, [
-
-          record.rank + '위',
-
-          record.nickname,
-
-          formatRecordTime(record.seconds),
-
-          record.dateLabel
-
-        ]);
-
-      });
+      return;
 
     }
 
-    // =================================
-    // 최근 기록
-    // =================================
-
-    recent.innerHTML = '';
-
-    if (!data.recent.length) {
+    data.leaderboard.forEach(record => {
 
       const tr = document.createElement('tr');
-      const td = document.createElement('td');
 
-      td.colSpan = 4;
-      td.textContent = '아직 게임 기록이 없습니다.';
+      const values = [
 
-      tr.appendChild(td);
-      recent.appendChild(tr);
+        record.rank + '위',
+        record.nickname,
+        record.shovels + '회',
+        formatRankTime(record.seconds),
+        record.dateLabel
 
-    } else {
+      ];
 
-      data.recent.forEach(record => {
+      values.forEach(value => {
 
-        addRecordRow(recent, [
+        const td = document.createElement('td');
 
-          record.nickname,
+        td.textContent = String(value);
 
-          record.difficulty,
-
-          record.result === '승리' ? '🏆 승리' : '💥 패배',
-
-          formatRecordTime(record.seconds)
-
-        ]);
+        tr.appendChild(td);
 
       });
 
-    }
+      tbody.appendChild(tr);
+
+    });
 
   }
 
 
   // =====================================
-  // 18. 랭킹 창 열기 및 닫기
+  // 26. 랭킹 모달
   // =====================================
 
-  function openRecords() {
+  function openRank() {
 
-    const modal =
-      document.getElementById('recordsModal');
+    document.getElementById('rankModal')
+      .classList.add('open');
 
-    modal.classList.add('open');
-
-    loadGameDashboard();
+    loadLeaderboard();
 
   }
 
 
-  function closeRecords() {
+  function closeRank() {
 
-    document.getElementById('recordsModal')
+    document.getElementById('rankModal')
       .classList.remove('open');
 
   }
 
 
-  document.getElementById('recordsBtn')
-    .addEventListener('click', openRecords);
+  document.getElementById('rankBtn')
+    .addEventListener('click', openRank);
 
 
-  document.getElementById('closeRecordsBtn')
-    .addEventListener('click', closeRecords);
+  document.getElementById('closeRankBtn')
+    .addEventListener('click', closeRank);
 
 
-  document.getElementById('recordsModal')
-    .addEventListener('click', function(e) {
+  document.getElementById('rankModal')
+    .addEventListener('click', function(event) {
 
-      if (e.target === this) {
-        closeRecords();
+      if (event.target === this) {
+        closeRank();
       }
 
     });
 
 
-  // 난이도가 바뀐 상태에서 랭킹을 열어 놓았다면 갱신
-  document.getElementById('difficulty')
-    .addEventListener('change', function() {
+  // =====================================
+  // 27. 닉네임 복원
+  // =====================================
 
-      const modal =
-        document.getElementById('recordsModal');
-
-      if (modal.classList.contains('open')) {
-        loadGameDashboard();
-      }
-
-    });
-
-
-  // 저장된 닉네임 복원
   try {
 
     const savedNickname =
-      localStorage.getItem('minesweeperNickname');
+      localStorage.getItem('mineHunterNickname');
 
     if (savedNickname) {
 
@@ -1840,19 +2285,42 @@ saveCompletedGame(won, flagsUsed);
 
     }
 
-  } catch (e) {
-    // 로컬 저장을 사용할 수 없는 경우 기본 닉네임 사용
+  } catch (error) {
+    // 기본 닉네임 사용
   }
 
 
   // =====================================
-  // 14. 버튼 이벤트 및 최초 실행
+  // 28. 화면 크기 변경
   // =====================================
 
-  document.getElementById('startBtn')
-    .addEventListener('click', startGame);
+  if ('ResizeObserver' in window) {
 
-  startGame();
+    const resizeObserver =
+      new ResizeObserver(() => {
+
+        render();
+
+      });
+
+    resizeObserver.observe(canvasWrap);
+
+  } else {
+
+    window.addEventListener('resize', render);
+
+  }
+
+
+  // =====================================
+  // 29. 최초 게임 실행
+  // =====================================
+
+  window.addEventListener('load', function() {
+
+    requestAnimationFrame(newGame);
+
+  });
 
 </script>
 
