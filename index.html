@@ -1,0 +1,1860 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MINESWEEPER</title>
+
+  <style>
+    :root {
+      --cell-size: 30px;
+      --cell-gap: 2px;
+      --cell-font: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body {
+      height: 100dvh;
+      padding: 10px 12px;
+      font-family: Arial, "Malgun Gothic", sans-serif;
+      background: #101827;
+      color: #f1f5f9;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1350px;
+      height: 100%;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    header {
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: clamp(21px, 3vh, 31px);
+      margin: 0 0 4px;
+      color: #60a5fa;
+      letter-spacing: 2px;
+    }
+
+    header p {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .panel {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 10px;
+      flex-shrink: 0;
+    }
+
+    .settings {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    select, button {
+      font-family: inherit;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+    }
+
+    select {
+      background: #334155;
+      color: white;
+      border: 1px solid #475569;
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .start-button {
+      background: #3b82f6;
+      color: white;
+      font-weight: bold;
+      padding: 11px 18px;
+      transition: 0.2s;
+    }
+
+    .start-button:hover {
+      background: #2563eb;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      flex-shrink: 0;
+    }
+
+    .stat {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 9px 5px;
+      text-align: center;
+    }
+
+    .stat-label {
+      color: #94a3b8;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 23px;
+      font-weight: bold;
+      color: #f8fafc;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .game-panel {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .game-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+      margin-bottom: 7px;
+    }
+
+    .game-header strong {
+      font-size: 14px;
+    }
+
+    #message {
+      color: #cbd5e1;
+      font-size: 12px;
+    }
+
+    .result {
+      display: none;
+      text-align: center;
+      padding: 9px;
+      border-radius: 9px;
+      margin-bottom: 7px;
+      font-size: 15px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .result.win {
+      display: block;
+      background: #14532d;
+      color: #bbf7d0;
+    }
+
+    .result.lose {
+      display: block;
+      background: #7f1d1d;
+      color: #fecaca;
+    }
+
+    /* 게임판 전체를 화면에 맞추는 영역 */
+    .board-scroll {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #board {
+      display: grid;
+      gap: var(--cell-gap);
+      width: max-content;
+      height: max-content;
+      padding: 3px;
+      background: #0f172a;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      min-width: 0;
+      min-height: 0;
+      padding: 0;
+
+      border-radius: 3px;
+      border: 1px solid #64748b;
+      border-right: 2px solid #334155;
+      border-bottom: 2px solid #334155;
+
+      background: #475569;
+      color: white;
+
+      font-size: var(--cell-font);
+      line-height: 1;
+      font-weight: bold;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .cell:hover:not(.revealed) {
+      background: #64748b;
+    }
+
+    .cell.revealed {
+      background: #cbd5e1;
+      border: 1px solid #94a3b8;
+      cursor: default;
+      color: #0f172a;
+    }
+
+    .cell.flagged {
+      background: #475569;
+    }
+
+    .cell.mine {
+      background: #ef4444;
+      border-color: #dc2626;
+    }
+
+    .cell.exploded {
+      background: #991b1b;
+      border-color: #fecaca;
+    }
+
+    .cell.wrong {
+      background: #7f1d1d;
+    }
+
+    .n1 { color: #2563eb; }
+    .n2 { color: #15803d; }
+    .n3 { color: #dc2626; }
+    .n4 { color: #6d28d9; }
+    .n5 { color: #991b1b; }
+    .n6 { color: #0891b2; }
+    .n7 { color: #111827; }
+    .n8 { color: #64748b; }
+
+    .instructions {
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.6;
+      text-align: center;
+      margin-top: 7px;
+      flex-shrink: 0;
+    }
+
+/* 닉네임 입력 */
+.nickname-input {
+  width: 135px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: #334155;
+  color: white;
+  font-size: 13px;
+  outline: none;
+}
+
+.nickname-input:focus {
+  border-color: #60a5fa;
+}
+
+.nickname-input::placeholder {
+  color: #94a3b8;
+}
+
+/* 랭킹 버튼 */
+.records-button {
+  background: #7c3aed;
+  color: white;
+  font-weight: bold;
+  padding: 11px 15px;
+}
+
+.records-button:hover {
+  background: #6d28d9;
+}
+
+/* 기록 모달 */
+.records-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(2, 6, 23, 0.85);
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.records-modal.open {
+  display: flex;
+}
+
+.records-card {
+  width: 100%;
+  max-width: 760px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.records-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.records-heading h2 {
+  color: #60a5fa;
+  font-size: 21px;
+  margin: 0;
+}
+
+.close-records {
+  background: #475569;
+  padding: 8px 13px;
+  color: white;
+}
+
+.record-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.record-stat {
+  background: #0f172a;
+  border-radius: 9px;
+  padding: 12px 5px;
+  text-align: center;
+}
+
+.record-stat span {
+  color: #94a3b8;
+  font-size: 11px;
+  display: block;
+}
+
+.record-stat strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 21px;
+  color: #f8fafc;
+}
+
+.record-section {
+  margin-top: 20px;
+}
+
+.record-section h3 {
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: #e2e8f0;
+}
+
+.record-table-wrap {
+  overflow-x: auto;
+}
+
+.record-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: center;
+  min-width: 340px;
+}
+
+.record-table th {
+  background: #334155;
+  color: #cbd5e1;
+  padding: 11px 5px;
+}
+
+.record-table td {
+  padding: 11px 5px;
+  border-bottom: 1px solid #334155;
+  color: #f1f5f9;
+}
+
+.record-table tr:hover td {
+  background: #29394e;
+}
+
+.record-status {
+  color: #94a3b8;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 15px;
+}
+
+@media (max-width: 600px) {
+  .nickname-input {
+    width: 115px;
+    font-size: 11px;
+  }
+
+  .records-button {
+    padding: 10px;
+    font-size: 11px;
+  }
+
+  .records-card {
+    padding: 12px;
+  }
+
+  .records-heading h2 {
+    font-size: 18px;
+  }
+
+  .record-stats {
+    gap: 5px;
+  }
+}
+
+    @media (max-width: 600px) {
+      body {
+        padding: 6px;
+      }
+
+      .container {
+        gap: 5px;
+      }
+
+      header h1 {
+        font-size: 21px;
+      }
+
+      header p {
+        font-size: 10px;
+      }
+
+      .panel {
+        padding: 7px;
+      }
+
+      select {
+        font-size: 12px;
+        padding: 9px 7px;
+        max-width: 70%;
+      }
+
+      .start-button {
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+
+      .stats {
+        gap: 5px;
+      }
+
+      .stat {
+        padding: 6px 3px;
+      }
+
+      .stat-label {
+        font-size: 10px;
+      }
+
+      .stat-value {
+        font-size: 19px;
+      }
+
+      .game-panel {
+        padding: 6px;
+      }
+
+      .game-header {
+        margin-bottom: 4px;
+      }
+
+      .instructions {
+        font-size: 9px;
+        margin-top: 4px;
+      }
+    }
+
+    @media (max-height: 600px) {
+      body {
+        padding-top: 4px;
+        padding-bottom: 4px;
+      }
+
+      .container {
+        gap: 4px;
+      }
+
+      header h1 {
+        font-size: 19px;
+        margin-bottom: 0;
+      }
+
+      header p {
+        display: none;
+      }
+
+      .panel {
+        padding: 5px;
+      }
+
+      .stat {
+        padding: 4px;
+      }
+
+      .stat-label {
+        margin-bottom: 1px;
+      }
+
+      .stat-value {
+        font-size: 17px;
+      }
+
+      .game-panel {
+        padding: 5px;
+      }
+
+      .instructions {
+        font-size: 9px;
+        line-height: 1.3;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <header>
+    <h1>💣 MINESWEEPER</h1>
+    <p>숨겨진 지뢰를 찾아내고 안전한 칸을 모두 열어보세요!</p>
+  </header>
+
+  <div class="panel">
+
+<div class="settings">
+
+  <input
+    type="text"
+    id="nickname"
+    class="nickname-input"
+    maxlength="12"
+    placeholder="닉네임"
+    value="플레이어"
+  >
+
+  <select id="difficulty">
+    <option value="easy">초급 (9 × 9 / 지뢰 10개)</option>
+    <option value="normal" selected>중급 (16 × 16 / 지뢰 40개)</option>
+    <option value="hard">고급 (30 × 16 / 지뢰 99개)</option>
+  </select>
+
+  <button class="start-button" id="startBtn">
+    새 게임 시작
+  </button>
+
+  <button class="records-button" id="recordsBtn">
+    🏆 기록 / 랭킹
+  </button>
+
+</div>
+
+  </div>
+
+  <div class="stats">
+
+    <div class="stat">
+      <div class="stat-label">💣 남은 지뢰</div>
+      <div class="stat-value" id="mineCount">040</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">⏱️ 경과 시간</div>
+      <div class="stat-value" id="timer">000</div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-label">🚩 설치한 깃발</div>
+      <div class="stat-value" id="flagCount">000</div>
+    </div>
+
+  </div>
+
+  <div class="game-panel">
+
+    <div class="result" id="result"></div>
+
+    <div class="game-header">
+      <strong>게임 보드</strong>
+      <span id="message">첫 칸을 클릭하세요!</span>
+    </div>
+
+    <div class="board-scroll" id="boardArea">
+      <div id="board"></div>
+    </div>
+
+    <div class="instructions">
+      🖱️ 왼쪽 클릭: 칸 열기 · 🚩 오른쪽 클릭: 깃발 설치/해제
+      <br>
+      💡 숫자 칸 클릭: 주변 깃발 수가 숫자와 같으면 나머지 닫힌 칸 열기
+    </div>
+
+  </div>
+
+<!-- 스프레드시트 기록 및 랭킹 모달 -->
+<div class="records-modal" id="recordsModal">
+
+  <div class="records-card">
+
+    <div class="records-heading">
+      <h2>🏆 게임 기록 & 랭킹</h2>
+      <button class="close-records" id="closeRecordsBtn">
+        닫기 ✕
+      </button>
+    </div>
+
+    <!-- 전체 통계 -->
+    <div class="record-stats">
+
+      <div class="record-stat">
+        <span>전체 플레이</span>
+        <strong id="totalGames">0</strong>
+      </div>
+
+      <div class="record-stat">
+        <span>전체 승리</span>
+        <strong id="totalWins">0</strong>
+      </div>
+
+      <div class="record-stat">
+        <span>승률</span>
+        <strong id="winRate">0%</strong>
+      </div>
+
+    </div>
+
+    <!-- 난이도별 랭킹 -->
+    <div class="record-section">
+
+      <h3>🥇 난이도별 최고 기록 TOP 10</h3>
+
+      <div class="record-table-wrap">
+
+        <table class="record-table">
+
+          <thead>
+            <tr>
+              <th>순위</th>
+              <th>닉네임</th>
+              <th>기록</th>
+              <th>달성 날짜</th>
+            </tr>
+          </thead>
+
+          <tbody id="leaderboardBody">
+            <tr>
+              <td colspan="4">기록을 불러오는 중...</td>
+            </tr>
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+    <!-- 최근 게임 기록 -->
+    <div class="record-section">
+
+      <h3>📋 최근 플레이 기록</h3>
+
+      <div class="record-table-wrap">
+
+        <table class="record-table">
+
+          <thead>
+            <tr>
+              <th>닉네임</th>
+              <th>난이도</th>
+              <th>결과</th>
+              <th>시간</th>
+            </tr>
+          </thead>
+
+          <tbody id="recentBody">
+            <tr>
+              <td colspan="4">기록을 불러오는 중...</td>
+            </tr>
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+    <div class="record-status" id="recordStatus">
+      Google 스프레드시트와 연결된 기록입니다.
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+
+<script>
+  // =====================================
+  // 1. 게임 기본 설정
+  // =====================================
+
+  const LEVELS = {
+    easy: {
+      rows: 9,
+      cols: 9,
+      mines: 10
+    },
+
+    normal: {
+      rows: 16,
+      cols: 16,
+      mines: 40
+    },
+
+    hard: {
+      rows: 16,
+      cols: 30,
+      mines: 99
+    }
+  };
+
+  let rows = 16;
+  let cols = 16;
+  let mineTotal = 40;
+
+  let board = [];
+
+  let gameOver = false;
+  let firstClick = true;
+
+  let revealedCount = 0;
+  let flagTotal = 0;
+
+  let seconds = 0;
+  let timerId = null;
+  let started = false;
+
+  const boardElement = document.getElementById('board');
+  const boardArea = document.getElementById('boardArea');
+
+  const messageElement = document.getElementById('message');
+  const resultElement = document.getElementById('result');
+
+  // =====================================
+  // 2. 게임 시작
+  // =====================================
+
+  function startGame() {
+
+    clearInterval(timerId);
+
+    const level = document.getElementById('difficulty').value;
+    const config = LEVELS[level];
+
+    rows = config.rows;
+    cols = config.cols;
+    mineTotal = config.mines;
+
+    gameOver = false;
+    firstClick = true;
+
+    revealedCount = 0;
+    flagTotal = 0;
+
+    seconds = 0;
+    started = false;
+
+    board = [];
+
+    resultElement.className = 'result';
+    resultElement.textContent = '';
+
+    messageElement.textContent = '첫 칸을 클릭하세요!';
+
+    document.getElementById('mineCount').textContent =
+      String(mineTotal).padStart(3, '0');
+
+    document.getElementById('timer').textContent = '000';
+    document.getElementById('flagCount').textContent = '000';
+
+    boardElement.innerHTML = '';
+    boardElement.style.gridTemplateColumns =
+      `repeat(${cols}, var(--cell-size))`;
+
+    // 지뢰가 아직 없는 빈 보드 생성
+    for (let r = 0; r < rows; r++) {
+
+      board[r] = [];
+
+      for (let c = 0; c < cols; c++) {
+
+        board[r][c] = {
+          mine: false,
+          number: 0,
+          revealed: false,
+          flagged: false,
+          element: null
+        };
+
+        const cell = document.createElement('button');
+
+        cell.className = 'cell';
+        cell.type = 'button';
+
+        cell.setAttribute(
+          'aria-label',
+          `${r + 1}행 ${c + 1}열`
+        );
+
+        // 왼쪽 클릭
+        cell.addEventListener('click', () => {
+          revealCell(r, c);
+        });
+
+        // 오른쪽 클릭
+        cell.addEventListener('contextmenu', (e) => {
+
+          e.preventDefault();
+          toggleFlag(r, c);
+
+        });
+
+        board[r][c].element = cell;
+
+        boardElement.appendChild(cell);
+      }
+    }
+
+    // 화면 크기에 맞게 보드 조절
+    requestAnimationFrame(fitBoard);
+
+  }
+
+  // =====================================
+  // 3. 화면에 전체 보드 맞추기
+  // =====================================
+
+  function fitBoard() {
+
+    if (!boardArea || !boardElement || rows === 0) return;
+
+    const availableWidth = boardArea.clientWidth - 8;
+    const availableHeight = boardArea.clientHeight - 8;
+
+    const gap = Math.min(
+      3,
+      Math.max(1, Math.floor(
+        Math.min(availableWidth, availableHeight) / 400
+      ))
+    );
+
+    const widthPerCell =
+      (availableWidth - (cols - 1) * gap - 6) / cols;
+
+    const heightPerCell =
+      (availableHeight - (rows - 1) * gap - 6) / rows;
+
+    let cellSize = Math.floor(
+      Math.min(widthPerCell, heightPerCell)
+    );
+
+    // 화면에 맞는 최대 크기
+    cellSize = Math.max(4, Math.min(42, cellSize));
+
+    const fontSize = Math.max(
+      6,
+      Math.min(19, Math.floor(cellSize * 0.57))
+    );
+
+    document.documentElement.style.setProperty(
+      '--cell-size',
+      cellSize + 'px'
+    );
+
+    document.documentElement.style.setProperty(
+      '--cell-gap',
+      gap + 'px'
+    );
+
+    document.documentElement.style.setProperty(
+      '--cell-font',
+      fontSize + 'px'
+    );
+
+    boardElement.style.gridTemplateColumns =
+      `repeat(${cols}, ${cellSize}px)`;
+
+  }
+
+  // 창 크기가 변경되면 다시 계산
+  window.addEventListener('resize', fitBoard);
+
+  window.addEventListener('orientationchange', () => {
+    setTimeout(fitBoard, 100);
+  });
+
+  // =====================================
+  // 4. 첫 클릭 주변 3×3 안전 지대 생성
+  // =====================================
+
+  function placeMines(firstRow, firstCol) {
+
+    const candidates = [];
+
+    // 첫 클릭 주변 3×3 바깥의 칸만 지뢰 후보로 선택
+    for (let r = 0; r < rows; r++) {
+
+      for (let c = 0; c < cols; c++) {
+
+        const insideSafeZone =
+          Math.abs(r - firstRow) <= 1 &&
+          Math.abs(c - firstCol) <= 1;
+
+        if (!insideSafeZone) {
+          candidates.push([r, c]);
+        }
+
+      }
+    }
+
+    // 후보 위치 무작위 섞기
+    for (let i = candidates.length - 1; i > 0; i--) {
+
+      const j = Math.floor(Math.random() * (i + 1));
+
+      [candidates[i], candidates[j]] =
+        [candidates[j], candidates[i]];
+
+    }
+
+    // 섞인 후보 중 지뢰 개수만큼 배치
+    for (let i = 0; i < mineTotal; i++) {
+
+      const [r, c] = candidates[i];
+
+      board[r][c].mine = true;
+
+    }
+
+    calculateNumbers();
+
+  }
+
+  // =====================================
+  // 5. 주변 지뢰 개수 계산
+  // =====================================
+
+  function calculateNumbers() {
+
+    for (let r = 0; r < rows; r++) {
+
+      for (let c = 0; c < cols; c++) {
+
+        if (board[r][c].mine) continue;
+
+        let count = 0;
+
+        for (let dr = -1; dr <= 1; dr++) {
+
+          for (let dc = -1; dc <= 1; dc++) {
+
+            if (dr === 0 && dc === 0) continue;
+
+            const nr = r + dr;
+            const nc = c + dc;
+
+            if (
+              nr >= 0 && nr < rows &&
+              nc >= 0 && nc < cols &&
+              board[nr][nc].mine
+            ) {
+              count++;
+            }
+
+          }
+        }
+
+        board[r][c].number = count;
+
+      }
+    }
+  }
+
+  // =====================================
+  // 6. 타이머
+  // =====================================
+
+  function startTimer() {
+
+    if (started) return;
+
+    started = true;
+
+    timerId = setInterval(() => {
+
+      seconds++;
+
+      document.getElementById('timer').textContent =
+        String(seconds).padStart(3, '0');
+
+    }, 1000);
+
+  }
+
+  // =====================================
+  // 7. 칸 클릭
+  // =====================================
+
+  function revealCell(r, c) {
+
+    if (gameOver) return;
+
+    const cell = board[r][c];
+
+    // 이미 열린 숫자 칸이면 연속 열기 실행
+    if (cell.revealed) {
+
+      chordOpen(r, c);
+      return;
+
+    }
+
+    // 깃발이 있는 칸은 열지 않음
+    if (cell.flagged) return;
+
+    // 첫 클릭 시 지뢰 배치
+    if (firstClick) {
+
+      placeMines(r, c);
+      firstClick = false;
+
+    }
+
+    startTimer();
+
+    // 지뢰를 클릭한 경우
+    if (cell.mine) {
+
+      cell.revealed = true;
+
+      cell.element.classList.add(
+        'revealed',
+        'mine',
+        'exploded'
+      );
+
+      cell.element.textContent = '💣';
+
+      endGame(false, [r, c]);
+
+      return;
+
+    }
+
+    // 안전한 칸 열기
+    showCell(r, c);
+
+    checkWin();
+
+  }
+
+  // =====================================
+  // 8. 빈칸 자동 확장
+  // BFS(너비 우선 탐색) 방식
+  // =====================================
+
+  function showCell(startR, startC) {
+
+    // 범위를 벗어난 칸 확인
+    if (
+      startR < 0 || startR >= rows ||
+      startC < 0 || startC >= cols
+    ) return;
+
+    const startCell = board[startR][startC];
+
+    if (
+      startCell.revealed ||
+      startCell.flagged ||
+      startCell.mine
+    ) return;
+
+    // 열어야 하는 칸을 저장하는 큐
+    const queue = [[startR, startC]];
+
+    // 이미 큐에 넣은 칸을 중복 처리하지 않도록 관리
+    const visited = new Set();
+
+    let head = 0;
+
+    visited.add(`${startR},${startC}`);
+
+    while (head < queue.length) {
+
+      const [r, c] = queue[head];
+
+      head++;
+
+      const cell = board[r][c];
+
+      if (
+        cell.revealed ||
+        cell.flagged ||
+        cell.mine
+      ) continue;
+
+      // 현재 칸 열기
+      cell.revealed = true;
+      revealedCount++;
+
+      cell.element.classList.add('revealed');
+
+      // 숫자가 있는 칸
+      if (cell.number > 0) {
+
+        cell.element.textContent = cell.number;
+
+        cell.element.classList.add(
+          'n' + cell.number
+        );
+
+        // 숫자 칸은 더 이상 확장하지 않음
+        continue;
+
+      }
+
+      // 빈칸이면 주변 8칸을 큐에 추가
+      for (let dr = -1; dr <= 1; dr++) {
+
+        for (let dc = -1; dc <= 1; dc++) {
+
+          if (dr === 0 && dc === 0) continue;
+
+          const nr = r + dr;
+          const nc = c + dc;
+
+          if (
+            nr < 0 || nr >= rows ||
+            nc < 0 || nc >= cols
+          ) continue;
+
+          const neighbor = board[nr][nc];
+
+          const key = `${nr},${nc}`;
+
+          if (
+            !visited.has(key) &&
+            !neighbor.revealed &&
+            !neighbor.flagged &&
+            !neighbor.mine
+          ) {
+
+            visited.add(key);
+            queue.push([nr, nc]);
+
+          }
+
+        }
+      }
+    }
+  }
+
+  // =====================================
+  // 9. 깃발 설치 및 해제
+  // =====================================
+
+  function toggleFlag(r, c) {
+
+    if (gameOver) return;
+
+    const cell = board[r][c];
+
+    if (cell.revealed) return;
+
+    cell.flagged = !cell.flagged;
+
+    if (cell.flagged) {
+
+      flagTotal++;
+
+      cell.element.textContent = '🚩';
+      cell.element.classList.add('flagged');
+
+    } else {
+
+      flagTotal--;
+
+      cell.element.textContent = '';
+      cell.element.classList.remove('flagged');
+
+    }
+
+    updateStats();
+
+  }
+
+  // =====================================
+  // 10. 숫자 칸 연속 열기
+  // Chording 기능
+  // =====================================
+
+  function chordOpen(r, c) {
+
+    if (gameOver) return;
+
+    const cell = board[r][c];
+
+    // 숫자가 없는 칸에는 실행하지 않음
+    if (!cell.revealed || cell.number === 0) return;
+
+    let adjacentFlags = 0;
+
+    const targets = [];
+
+    // 주변 3×3 확인
+    for (let dr = -1; dr <= 1; dr++) {
+
+      for (let dc = -1; dc <= 1; dc++) {
+
+        if (dr === 0 && dc === 0) continue;
+
+        const nr = r + dr;
+        const nc = c + dc;
+
+        if (
+          nr < 0 || nr >= rows ||
+          nc < 0 || nc >= cols
+        ) continue;
+
+        const neighbor = board[nr][nc];
+
+        if (neighbor.flagged) {
+
+          adjacentFlags++;
+
+        } else if (!neighbor.revealed) {
+
+          targets.push([nr, nc]);
+
+        }
+
+      }
+    }
+
+    // 깃발 개수와 숫자가 일치하지 않으면 중단
+    if (adjacentFlags !== cell.number) return;
+
+    if (targets.length === 0) return;
+
+    startTimer();
+
+    let exploded = null;
+
+    // 깃발이 없는 닫힌 칸들을 모두 클릭한 것으로 처리
+    for (const [nr, nc] of targets) {
+
+      const target = board[nr][nc];
+
+      if (target.mine) {
+
+        // 잘못된 깃발 때문에 지뢰가 열리는 상황
+        if (exploded === null) {
+          exploded = [nr, nc];
+        }
+
+      } else {
+
+        // 안전한 칸 열기
+        showCell(nr, nc);
+
+      }
+
+    }
+
+    // 잘못된 깃발로 인해 지뢰를 열었으면 패배
+    if (exploded !== null) {
+
+      endGame(false, exploded);
+
+      return;
+
+    }
+
+    checkWin();
+
+  }
+
+  // =====================================
+  // 11. 점수판 업데이트
+  // =====================================
+
+  function updateStats() {
+
+    document.getElementById('mineCount').textContent =
+      String(mineTotal - flagTotal).padStart(3, '0');
+
+    document.getElementById('flagCount').textContent =
+      String(flagTotal).padStart(3, '0');
+
+  }
+
+  // =====================================
+  // 12. 승리 확인
+  // =====================================
+
+  function checkWin() {
+
+    const safeCellCount = rows * cols - mineTotal;
+
+    if (revealedCount === safeCellCount) {
+
+      endGame(true);
+
+    }
+
+  }
+
+  // =====================================
+  // 13. 게임 종료
+  // =====================================
+
+function endGame(won, explodedCell = null) {
+
+  if (gameOver) return;
+
+  // 자동으로 지뢰에 깃발을 표시하기 전 실제 설치 개수 보관
+  const flagsUsed = flagTotal;
+
+  gameOver = true;
+
+    clearInterval(timerId);
+
+    if (won) {
+
+      resultElement.className = 'result win';
+
+      resultElement.textContent =
+        '🎉 축하합니다! 모든 안전한 칸을 열었습니다!';
+
+      messageElement.textContent = '게임 승리!';
+
+    } else {
+
+      resultElement.className = 'result lose';
+
+      resultElement.textContent =
+        '💥 지뢰를 밟았습니다! 다시 도전해 보세요.';
+
+      messageElement.textContent = '게임 오버!';
+
+    }
+// 게임 종료 결과를 스프레드시트에 저장
+saveCompletedGame(won, flagsUsed);
+    // 게임 종료 시 지뢰 전체 공개
+    for (let r = 0; r < rows; r++) {
+
+      for (let c = 0; c < cols; c++) {
+
+        const cell = board[r][c];
+
+        // 실제 지뢰 공개
+        if (cell.mine && !cell.flagged) {
+
+          cell.element.textContent = '💣';
+
+          cell.element.classList.add(
+            'revealed',
+            'mine'
+          );
+
+        }
+
+        // 잘못된 깃발 표시
+        if (cell.flagged && !cell.mine) {
+
+          cell.element.textContent = '❌';
+
+          cell.element.classList.add('wrong');
+
+        }
+
+      }
+    }
+
+    // 폭발한 지뢰 표시
+    if (explodedCell !== null) {
+
+      const [r, c] = explodedCell;
+
+      board[r][c].element.classList.add(
+        'revealed',
+        'mine',
+        'exploded'
+      );
+
+      board[r][c].element.textContent = '💣';
+
+    }
+
+    // 승리하면 모든 지뢰에 깃발 표시
+    if (won) {
+
+      for (let r = 0; r < rows; r++) {
+
+        for (let c = 0; c < cols; c++) {
+
+          const cell = board[r][c];
+
+          if (cell.mine) {
+
+            cell.flagged = true;
+
+            cell.element.textContent = '🚩';
+
+            cell.element.classList.add('flagged');
+
+          }
+        }
+      }
+
+      flagTotal = mineTotal;
+
+      updateStats();
+
+    }
+
+  }
+
+  // =====================================
+  // 14. 스프레드시트 기록 저장
+  // =====================================
+
+  function saveCompletedGame(won, flagsUsed) {
+
+    const nicknameInput =
+      document.getElementById('nickname');
+
+    let nickname = String(nicknameInput.value)
+      .replace(/[^\w가-힣 -]/g, '')
+      .trim();
+
+    nickname = Array.from(nickname)
+      .slice(0, 12)
+      .join('');
+
+    if (!nickname) {
+      nickname = '플레이어';
+    }
+
+    nicknameInput.value = nickname;
+
+    // 다음 방문에도 닉네임 유지
+    try {
+      localStorage.setItem('minesweeperNickname', nickname);
+    } catch (e) {
+      // 로컬 저장을 사용할 수 없는 경우 무시
+    }
+
+    const payload = {
+
+      nickname: nickname,
+
+      difficulty:
+        document.getElementById('difficulty').value,
+
+      won: won,
+
+      seconds: seconds,
+
+      flags: flagsUsed
+
+    };
+
+    const status =
+      document.getElementById('recordStatus');
+
+    status.textContent = '게임 기록을 저장하는 중입니다...';
+
+    if (
+      typeof google === 'undefined' ||
+      !google.script ||
+      !google.script.run
+    ) {
+
+      status.textContent =
+        '웹앱 배포 주소에서 실행해야 기록을 저장할 수 있습니다.';
+
+      return;
+
+    }
+
+    google.script.run
+
+      .withSuccessHandler(function(response) {
+
+        status.textContent =
+          '✅ 게임 기록이 스프레드시트에 저장되었습니다!';
+
+        const modal =
+          document.getElementById('recordsModal');
+
+        if (modal.classList.contains('open')) {
+          loadGameDashboard();
+        }
+
+      })
+
+      .withFailureHandler(function(error) {
+
+        status.textContent =
+          '❌ 기록 저장 실패: ' + error.message;
+
+        console.error(error);
+
+      })
+
+      .saveGameRecord(payload);
+
+  }
+
+
+  // =====================================
+  // 15. 게임 기록 조회
+  // =====================================
+
+  function loadGameDashboard() {
+
+    const difficulty =
+      document.getElementById('difficulty').value;
+
+    const leaderboard =
+      document.getElementById('leaderboardBody');
+
+    const recent =
+      document.getElementById('recentBody');
+
+    leaderboard.innerHTML =
+      '<tr><td colspan="4">불러오는 중...</td></tr>';
+
+    recent.innerHTML =
+      '<tr><td colspan="4">불러오는 중...</td></tr>';
+
+    if (
+      typeof google === 'undefined' ||
+      !google.script ||
+      !google.script.run
+    ) {
+
+      document.getElementById('recordStatus').textContent =
+        '배포된 Google Apps Script 웹앱에서 실행해 주세요.';
+
+      return;
+
+    }
+
+    google.script.run
+
+      .withSuccessHandler(function(data) {
+
+        renderGameDashboard(data);
+
+      })
+
+      .withFailureHandler(function(error) {
+
+        document.getElementById('recordStatus').textContent =
+          '기록 조회 실패: ' + error.message;
+
+        leaderboard.innerHTML =
+          '<tr><td colspan="4">기록을 불러오지 못했습니다.</td></tr>';
+
+        recent.innerHTML =
+          '<tr><td colspan="4">기록을 불러오지 못했습니다.</td></tr>';
+
+      })
+
+      .getGameDashboard(difficulty);
+
+  }
+
+
+  // =====================================
+  // 16. 시간 표시
+  // =====================================
+
+  function formatRecordTime(value) {
+
+    const total = Math.max(0, Number(value) || 0);
+
+    const minutes = Math.floor(total / 60);
+    const secondsPart = total % 60;
+
+    return minutes + ':' +
+      String(secondsPart).padStart(2, '0');
+
+  }
+
+
+  // =====================================
+  // 17. 랭킹 데이터 화면 출력
+  // =====================================
+
+  function addRecordRow(tbody, values) {
+
+    const tr = document.createElement('tr');
+
+    values.forEach(value => {
+
+      const td = document.createElement('td');
+
+      // HTML 삽입 대신 텍스트로 출력
+      td.textContent = String(value);
+
+      tr.appendChild(td);
+
+    });
+
+    tbody.appendChild(tr);
+
+  }
+
+
+  function renderGameDashboard(data) {
+
+    const leaderboard =
+      document.getElementById('leaderboardBody');
+
+    const recent =
+      document.getElementById('recentBody');
+
+    // 전체 통계
+    document.getElementById('totalGames').textContent =
+      data.stats.totalGames;
+
+    document.getElementById('totalWins').textContent =
+      data.stats.totalWins;
+
+    document.getElementById('winRate').textContent =
+      data.stats.winRate + '%';
+
+    // =================================
+    // 최고 기록
+    // =================================
+
+    leaderboard.innerHTML = '';
+
+    if (!data.leaderboard.length) {
+
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+
+      td.colSpan = 4;
+      td.textContent = '아직 승리 기록이 없습니다.';
+
+      tr.appendChild(td);
+      leaderboard.appendChild(tr);
+
+    } else {
+
+      data.leaderboard.forEach(record => {
+
+        addRecordRow(leaderboard, [
+
+          record.rank + '위',
+
+          record.nickname,
+
+          formatRecordTime(record.seconds),
+
+          record.dateLabel
+
+        ]);
+
+      });
+
+    }
+
+    // =================================
+    // 최근 기록
+    // =================================
+
+    recent.innerHTML = '';
+
+    if (!data.recent.length) {
+
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+
+      td.colSpan = 4;
+      td.textContent = '아직 게임 기록이 없습니다.';
+
+      tr.appendChild(td);
+      recent.appendChild(tr);
+
+    } else {
+
+      data.recent.forEach(record => {
+
+        addRecordRow(recent, [
+
+          record.nickname,
+
+          record.difficulty,
+
+          record.result === '승리' ? '🏆 승리' : '💥 패배',
+
+          formatRecordTime(record.seconds)
+
+        ]);
+
+      });
+
+    }
+
+  }
+
+
+  // =====================================
+  // 18. 랭킹 창 열기 및 닫기
+  // =====================================
+
+  function openRecords() {
+
+    const modal =
+      document.getElementById('recordsModal');
+
+    modal.classList.add('open');
+
+    loadGameDashboard();
+
+  }
+
+
+  function closeRecords() {
+
+    document.getElementById('recordsModal')
+      .classList.remove('open');
+
+  }
+
+
+  document.getElementById('recordsBtn')
+    .addEventListener('click', openRecords);
+
+
+  document.getElementById('closeRecordsBtn')
+    .addEventListener('click', closeRecords);
+
+
+  document.getElementById('recordsModal')
+    .addEventListener('click', function(e) {
+
+      if (e.target === this) {
+        closeRecords();
+      }
+
+    });
+
+
+  // 난이도가 바뀐 상태에서 랭킹을 열어 놓았다면 갱신
+  document.getElementById('difficulty')
+    .addEventListener('change', function() {
+
+      const modal =
+        document.getElementById('recordsModal');
+
+      if (modal.classList.contains('open')) {
+        loadGameDashboard();
+      }
+
+    });
+
+
+  // 저장된 닉네임 복원
+  try {
+
+    const savedNickname =
+      localStorage.getItem('minesweeperNickname');
+
+    if (savedNickname) {
+
+      document.getElementById('nickname').value =
+        savedNickname;
+
+    }
+
+  } catch (e) {
+    // 로컬 저장을 사용할 수 없는 경우 기본 닉네임 사용
+  }
+
+
+  // =====================================
+  // 14. 버튼 이벤트 및 최초 실행
+  // =====================================
+
+  document.getElementById('startBtn')
+    .addEventListener('click', startGame);
+
+  startGame();
+
+</script>
+
+</body>
+</html>
